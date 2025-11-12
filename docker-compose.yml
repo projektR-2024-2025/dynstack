@@ -1,0 +1,9 @@
+services:
+  dynview:
+    build: .
+    ports:
+      - "2222:2222"
+      - "8080:8080"
+      - "8765:8765"
+    environment:
+      - ASPNETCORE_URLS=http://+:8765,http://+:2222,http://+:8080

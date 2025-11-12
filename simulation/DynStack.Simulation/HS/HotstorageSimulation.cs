@@ -519,7 +519,7 @@ namespace DynStack.Simulation.HS {
       _worldChanged = true;
     }
     private IEnumerable<Event> WorldUpdates() {
-      var updateInterval = 1000L; // must be > 1
+      var updateInterval = 10L; // must be > 1
       while (true) {
         // uncomment if you prefer world updates only for changes
         //if (_worldChanged) {
