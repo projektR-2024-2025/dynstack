@@ -3,19 +3,18 @@ cmake_minimum_required(VERSION 3.19)
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
     CACHE STRING "")
-    message(" [INFO] VCPKG CMAKE_TOOLCHAIN_FILE = ${CMAKE_TOOLCHAIN_FILE}")
+  message(" [INFO] Using vcpkg toolchain from: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
-
-set(CMAKE_CXX_STANDARD 17) 
+set(CMAKE_CXX_STANDARD 17)
 
 project(dynstack)
 
-include(FindProtobuf)
 find_package(Protobuf REQUIRED)
-include_directories(${PROTOBUF_INCLUDE_DIR})
 find_package(cppzmq CONFIG REQUIRED)
+find_package(absl CONFIG REQUIRED)
 
+include_directories(${Protobuf_INCLUDE_DIRS})
 
 add_executable(stacking
   "src/stacking.cc"
@@ -31,6 +30,16 @@ add_executable(stacking
   "src/cranescheduling/heuristic.cc"
   "src/cranescheduling/cranescheduling_model.pb.cc"
   "src/cranescheduling/cranescheduling_model.pb.h"
-  )
+)
+
 target_link_libraries(stacking PRIVATE protobuf::libprotoc protobuf::libprotobuf protobuf::libprotobuf-lite)
 target_link_libraries(stacking PRIVATE cppzmq cppzmq-static)
+target_link_libraries(stacking PRIVATE
+  absl::base
+  absl::strings
+  absl::status
+  absl::statusor
+  absl::log_internal_check_op
+  absl::log_internal_message
+  absl::log_internal_format
+)
