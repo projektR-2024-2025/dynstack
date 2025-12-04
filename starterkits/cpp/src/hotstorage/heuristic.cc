@@ -1,10 +1,24 @@
 #include "hotstorage_model.pb.h"
 //#include "heuristic.h"
 #include <optional>
+#include <vector>
 
 namespace DynStacking {
     namespace HotStorage {
         using namespace DataModel;
+
+
+        /// Feature extraction function
+        std::vector<double> ExtractFunction(World& world){
+            std::vector<double> result;
+
+            result.push_back((double) world.handover().ready());
+            result.push_back((double) world.handover().id());
+            result.push_back((double) world.now().milliseconds());    
+            result.push_back((double) world.crane().locationid());            
+
+            return result;
+        }
 
         /// If any block on top of a stack can be moved to the handover schedule this move.
         void any_handover_move(World& world, CraneSchedule& schedule) {
@@ -65,10 +79,19 @@ namespace DynStacking {
             }
 
         }
+
         std::optional<std::string> calculate_answer(void* world_data, size_t len) {
             World world;
             world.ParseFromArray(world_data, len);
             auto plan = plan_moves(world);
+            std::vector<double> result = ExtractFunction(world);
+            std::cout<< "\n---- EXTARCTED FEATURES ----\n" ;
+            std::cout<< "HANDOVER READY " <<result[0] <<std::endl;
+            std::cout << " HANDOVER ID " <<result[1] << std::endl;
+            std::cout << "MILISECONDS " <<result[2] << std::endl;
+            std::cout<< "CRANE LOCATION ID " << result[3] <<std::endl ;
+            std::cout<<"---------------------------------" ;
+
             if (plan.has_value()) {
                 return plan.value().SerializeAsString();
             }
