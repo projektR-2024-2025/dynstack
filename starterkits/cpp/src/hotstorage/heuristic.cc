@@ -1,10 +1,24 @@
 #include "hotstorage_model.pb.h"
 //#include "heuristic.h"
 #include <optional>
+#include <vector>
 
 namespace DynStacking {
     namespace HotStorage {
         using namespace DataModel;
+
+
+        /// Feature extraction function TODO: dodaj odabir znacajka bitmaskom
+        std::vector<double> ExtractFunction(World& world){
+            std::vector<double> result;
+
+            // Dodavanje znacajki u result vector. TODO: prosiri odabranim znacajkama
+            result.push_back((double) world.handover().ready());
+            result.push_back((double) world.handover().id());
+            result.push_back((double) world.now().milliseconds());
+
+            return result;
+        }
 
         /// If any block on top of a stack can be moved to the handover schedule this move.
         void any_handover_move(World& world, CraneSchedule& schedule) {
@@ -65,10 +79,16 @@ namespace DynStacking {
             }
 
         }
+
         std::optional<std::string> calculate_answer(void* world_data, size_t len) {
             World world;
             world.ParseFromArray(world_data, len);
             auto plan = plan_moves(world);
+
+            // Ispis dummy extract funkcije TODO: makni debug
+            std::vector<double> result = ExtractFunction(world);
+            std::cout << result[2] << std::endl;
+
             if (plan.has_value()) {
                 return plan.value().SerializeAsString();
             }
