@@ -19,7 +19,8 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 add_executable(stacking
   "src/stacking.cc"
   "src/hotstorage/heuristic.h"
-  "src/hotstorage/heuristic.cc"
+  #"src/hotstorage/heuristic.cc"
+  "src/hotstorage/custom_heuristic_dj.cc"
   "src/hotstorage/hotstorage_model.pb.cc"
   "src/hotstorage/hotstorage_model.pb.h"
   "src/rollingmill/heuristic.h"
