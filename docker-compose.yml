@@ -1,8 +1,10 @@
 services:
   dynview:
-    image: micamaca44/dynview:latest
+    image: micamaca44/dynview
     ports:
-      - "2222:2222"  # ZMQ port
-      - "8765:8765"  # HTTP/WebSocket port
+      - "2222:2222"
+      - "8080:8080"
+      - "8765:8765"
     environment:
-      - ASPNETCORE_URLS=http://+:8765,http://+:2222
+
+      - ASPNETCORE_URLS=http://+:8765,http://+:2222,http://+:8080
