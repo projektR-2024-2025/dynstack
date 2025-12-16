@@ -16,8 +16,8 @@ struct Container {
 	// ako je vraca koliko je vremena overdue, inace vraca 0
     int is_overdue(int current_time) {
         int t = current_time - arrival_time;
-		if (t > (overdue + wait)) {
-			return t;
+		if (t > (overdue + wait)) { // TODO: >= ili >
+			return t - (overdue + wait);
 		}
         else {
             return 0;
@@ -122,7 +122,7 @@ public:
 
 int main() {
     BufferSimulator sim;
-    // demo proba
+    // demo proba, TODO: dodati KPI
 	for (int i = 0; i < 100; i++) {
 		sim.step();
         sim.move_arrival_to_buffer(0);
