@@ -8,3 +8,5 @@
 *.db
 *.ipch
 .vs/
+
+external/*
