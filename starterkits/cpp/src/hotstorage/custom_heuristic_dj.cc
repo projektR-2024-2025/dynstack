@@ -4,6 +4,8 @@
 #include <iostream>
 #include <algorithm>
 #include <climits>
+#include <ECF/ECF.h>
+
 
 namespace DynStacking {
     namespace HotStorage {

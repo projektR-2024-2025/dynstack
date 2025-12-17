@@ -15,7 +15,8 @@ namespace DynStacking {
             result.push_back((double) world.handover().ready());
             result.push_back((double) world.handover().id());
             result.push_back((double) world.now().milliseconds());    
-            result.push_back((double) world.crane().locationid());            
+            result.push_back((double) world.crane().locationid());
+            result.push_back((double) world.production().maxheight()) ;
 
             return result;
         }
@@ -90,7 +91,8 @@ namespace DynStacking {
             std::cout << " HANDOVER ID " <<result[1] << std::endl;
             std::cout << "MILISECONDS " <<result[2] << std::endl;
             std::cout<< "CRANE LOCATION ID " << result[3] <<std::endl ;
-            std::cout<<"---------------------------------" ;
+            std::cout<< "production max height" << result[4] <<std::endl ;
+            std::cout<<"---------------------------------\n" ;
 
             if (plan.has_value()) {
                 return plan.value().SerializeAsString();

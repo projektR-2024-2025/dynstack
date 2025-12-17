@@ -2,9 +2,9 @@
 
 #regenerate model classes
 cd ./starterkits
-protoc hotstorage_model.proto --cpp_out=cpp/src/hotstorage
-protoc rollingmill_model.proto --cpp_out=cpp/src/rollingmill 
-protoc cranescheduling_model.proto --cpp_out=cpp/src/cranescheduling
+#protoc hotstorage_model.proto --cpp_out=cpp/src/hotstorage
+#protoc rollingmill_model.proto --cpp_out=cpp/src/rollingmill 
+#protoc cranescheduling_model.proto --cpp_out=cpp/src/cranescheduling
 
 cd ./cpp
 echo 'Building solver...'
