@@ -8,3 +8,4 @@
 *.db
 *.ipch
 .vs/
+**/build/*
