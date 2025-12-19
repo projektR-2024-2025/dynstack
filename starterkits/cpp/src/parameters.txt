@@ -1,0 +1,12 @@
+<Parameters>
+
+    <Genotype>
+        <Tree>
+            <Entry key="functionset">+ - * / sin cos</Entry>
+            <Entry key="terminalset">t1 t2 t3 t4 t5 t6</Entry>
+            <Entry key="mindepth">1</Entry>
+            <Entry key="maxdepth">5</Entry>
+        </Tree>
+    </Genotype>
+
+</Parameters>
