@@ -1,6 +1,6 @@
 #ifndef SimulatorEvalOp_h
 #define SimulatorEvalOp_h
-#include <ecf/ECF.h>
+#include <ECF/ECF.h>
 
 class SimulatorEvalOp : public EvaluateOp
 {

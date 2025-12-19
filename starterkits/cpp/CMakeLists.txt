@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(buffer_simulator
     src/main.cpp
     src/heuristic.cpp
-
+    ../../simulation/runner.h
+    src/SimulatorEvalOp.cpp
     ../../simulation/simulator.cpp
 )
 
@@ -19,5 +20,5 @@ target_include_directories(buffer_simulator PRIVATE
 )
 
 # Link ECF
-target_link_libraries(buffer_simulator ../../external/build/libECF.a)
+target_link_libraries(buffer_simulator /usr/local/lib/libECF.a)
 

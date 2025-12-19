@@ -8,6 +8,6 @@
         </Tree>
     </Genotype>
     <Registry>
-	<Entry key="term.eval">1000</Entry>
+	    <Entry key="term.eval">1000</Entry>
     </Registry>
 </ECF>
