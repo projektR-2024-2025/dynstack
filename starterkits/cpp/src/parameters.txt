@@ -1,5 +1,4 @@
-<Parameters>
-
+<ECF>
     <Genotype>
         <Tree>
             <Entry key="functionset">+ - * / sin cos</Entry>
@@ -8,5 +7,7 @@
             <Entry key="maxdepth">5</Entry>
         </Tree>
     </Genotype>
-
-</Parameters>
+    <Registry>
+	<Entry key="term.eval">1000</Entry>
+    </Registry>
+</ECF>
