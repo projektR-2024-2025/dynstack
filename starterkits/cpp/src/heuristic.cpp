@@ -1,18 +1,6 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <memory>
-
-#include <ECF/ECF.h>
-#include <ECF/State.h>
-#include <ECF/Individual.h>
-#include <ECF/tree/Tree.h>
-#include <ECF/tree/Primitive.h>
-
 #include "heuristic.h"
-#include <limits>
 
-bool apply_move(BufferSimulator& sim, Move& m) {
+bool AbstractHeuristic::apply_move(BufferSimulator& sim, Move& m) {
     switch(m.type) {
         case MoveType::ARRIVAL_TO_BUFFER: return sim.move_arrival_to_buffer(m.to);
         case MoveType::BUFFER_TO_BUFFER: return sim.move_buffer_to_buffer(m.from, m.to);
@@ -21,7 +9,7 @@ bool apply_move(BufferSimulator& sim, Move& m) {
     }
 }
 
-std::vector<Move> possible_moves(BufferSimulator& sim) {
+std::vector<Move> AbstractHeuristic::possible_moves(BufferSimulator& sim) {
     std::vector<Move> moves;
     World w = sim.getWorld();
 

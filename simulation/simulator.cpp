@@ -7,9 +7,21 @@ bool Container::is_ready(int current_time) const {
     return (current_time - arrival_time) > wait;
 }
 
+bool Container::is_overdue(int current_time) const {
+    return (current_time - arrival_time) > (overdue + wait);
+}
+
+int Container::until_ready(int current_time) const {
+    int t = current_time - arrival_time;
+    if (t < wait)
+        return wait - t;
+    else
+        return 0;
+}
+
 // funkcija provjerava je li kontejner overdue
 // ako je vraca koliko je vremena overdue, inace vraca 0
-int Container::is_overdue(int current_time) const {
+int Container::get_overdue(int current_time) const {
     int t = current_time - arrival_time;
     if (t > (overdue + wait)) {
         return t - (overdue + wait);
@@ -63,6 +75,10 @@ BufferSimulator::BufferSimulator(int arrival_density = 1, bool initalize_buffers
     rng.seed(rd());
     if (initalize_buffers)
         this->initalize_buffers();
+}
+
+World BufferSimulator::getWorld() {
+    return World{time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, max_buffer_size, {KPI[0], KPI[1], KPI[2]}};
 }
 
 // Manual move instructions
@@ -167,6 +183,12 @@ void BufferSimulator::step() {
     isCraneAvail = true;
 }
 
-World BufferSimulator::getWorld() {
-    return World{time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, max_buffer_size, {KPI[0], KPI[1], KPI[2]}};
+double BufferSimulator::run_simulation(BufferSimulator& sim, AbstractHeuristic& heuristic, int max_steps) {
+    for(int step = 0; step < max_steps; ++step) {
+        Move m = heuristic.calculate_move(sim);
+        AbstractHeuristic::apply_move(sim, m);
+        sim.step();
+    }
+    World w = sim.getWorld();
+    return w.KPI[0] + w.KPI[1] + w.KPI[2];
 }

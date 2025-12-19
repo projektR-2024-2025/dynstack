@@ -5,11 +5,15 @@
 #include <random>
 #include <iostream>
 
+#include "../starterkits/cpp/src/heuristic.h"
+
 struct Container {
     int id, wait, overdue, arrival_time;
     Container(int id, int w, int o, int t);
     bool is_ready(int current_time) const;
-    int is_overdue(int current_time) const;
+    bool is_overdue(int current_time) const;
+    int until_ready(int current_time) const;
+    int get_overdue(int current_time) const;
 };
 
 struct World {
@@ -39,13 +43,15 @@ private:
 
 public:
     BufferSimulator(int arrival_density, bool initalize_buffers);
+    ~BufferSimulator() = default;
 
+    World getWorld();
     bool move_arrival_to_buffer(int buffer_id);
     bool move_buffer_to_buffer(int from_buffer_id, int to_buffer_id);
     bool move_buffer_to_handover(int buffer_id);
     void print_status();
     void step();
-    World getWorld();
+    static double run_simulation(BufferSimulator& sim, AbstractHeuristic& heuristic, int max_steps);
 };
 
 #endif // SIMULATOR_H
