@@ -10,7 +10,7 @@ double run_simulation(BufferSimulator& sim, AbstractHeuristic& heuristic, int ma
         sim.step();
     }
     World w = sim.getWorld();
-    return w.KPI[0] + w.KPI[1] + w.KPI[2];
+    return 0.5 * w.KPI[0] - 0.4 * w.KPI[1] + 0.1 * w.KPI[2];
 }
 
 #endif

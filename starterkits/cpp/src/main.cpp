@@ -14,25 +14,19 @@
 
 #include "simulator.h"
 #include "heuristic.h"
-#include "runner.h"
+#include "SimulatorEvalOp.h"
 
 int main(int argc, char** argv) {
-
     StateP state(new State);
-    state->initialize(argc, argv);
-    auto pop = state->getPopulation();
-    auto temp = (*pop)[0];
-    IndividualP ind = (*temp)[0];
-    
-    Tree::Tree* tree = static_cast<Tree::Tree*>( ind->getGenotype(0).get() );
 
-    std::vector<std::string> terminal_names = {"t1", "t2", "t3", "t4", "t5", "t6"};
-    
-    PriorityHeuristic heuristic(tree, terminal_names);
-    BufferSimulator sim(2, true);
-    double score = run_simulation(sim, heuristic, 50);
-    
-    std::cout << "Simulation KPI sum: " << score << std::endl;
-    
+    state->setEvalOp(new SimulatorEvalOp);
+    state->initialize(argc, argv);
+    state->run();
+
+    std::vector<IndividualP> hof = state->getHoF()->getBest();
+    IndividualP ind = hof[0];
+    std::ofstream best("./best.txt");
+    best << ind->toString();
+    best.close();
     return 0;
 }
