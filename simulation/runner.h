@@ -1,5 +1,5 @@
-#define RUNNER_H
 #ifndef RUNNER_H
+#define RUNNER_H
 #include "simulator.h"
 #include "../starterkits/cpp/src/heuristic.h"
 
