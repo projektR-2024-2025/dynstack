@@ -33,7 +33,8 @@ private:
     const int max_buffer_size = 8;
     int processed_count = 0;
     int KPI[3] = {0, 0, 0};
-    bool isCraneAvail = true;
+    bool is_crane_avail = true;
+    bool print_steps = false;
 
     void initalize_buffers();
     void generate_arrival();
@@ -48,6 +49,7 @@ public:
     bool move_buffer_to_buffer(int from_buffer_id, int to_buffer_id);
     bool move_buffer_to_handover(int buffer_id);
     void print_status();
+    void set_print_steps(bool val) { print_steps = val; }
     void step();
 };
 

@@ -3,7 +3,7 @@
 #include "simulator.h"
 #include "../starterkits/cpp/src/heuristic.h"
 
-double run_simulation(BufferSimulator& sim, AbstractHeuristic& heuristic, int max_steps) {
+static double run_simulation(BufferSimulator& sim, AbstractHeuristic& heuristic, int max_steps) {
     for (int step = 0; step < max_steps; ++step) {
         Move m = heuristic.calculate_move(sim);
         AbstractHeuristic::apply_move(sim, m);

@@ -1,6 +1,8 @@
-#ifndef SimulatorEvalOp_h
-#define SimulatorEvalOp_h
+#ifndef SIMULATOR_EVAL_OP_H
+#define SIMULATOR_EVAL_OP_H
 #include <ECF/ECF.h>
+#include "runner.h"
+#include "heuristic.h"
 
 class SimulatorEvalOp : public EvaluateOp
 {
@@ -9,5 +11,4 @@ public:
 };
 typedef std::shared_ptr<SimulatorEvalOp> SimulatorEvalOpP;
 
-
-#endif // OneMaxEvalOp_h
+#endif // SIMULATOR_EVAL_OP_H

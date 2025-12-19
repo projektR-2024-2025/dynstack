@@ -3,12 +3,8 @@
 
 #include "simulator.h"
 
-#include <memory>
 #include <vector>
-#include <optional>
-#include <iostream>
 #include <string>
-#include <limits>
 #include <ECF/ECF.h>
 
 namespace Tree {

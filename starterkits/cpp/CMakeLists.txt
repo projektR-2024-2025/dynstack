@@ -8,7 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(buffer_simulator
     src/main.cpp
     src/heuristic.cpp
-    ../../simulation/runner.h
     src/SimulatorEvalOp.cpp
     ../../simulation/simulator.cpp
 )

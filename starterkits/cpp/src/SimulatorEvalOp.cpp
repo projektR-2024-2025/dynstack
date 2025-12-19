@@ -1,7 +1,4 @@
-#include <ECF/ECF.h>
 #include "SimulatorEvalOp.h"
-#include "runner.h"
-#include "heuristic.h"
 
 FitnessP SimulatorEvalOp::evaluate(IndividualP individual)
 {
