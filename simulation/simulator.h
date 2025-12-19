@@ -5,8 +5,6 @@
 #include <random>
 #include <iostream>
 
-#include "../starterkits/cpp/src/heuristic.h"
-
 struct Container {
     int id, wait, overdue, arrival_time;
     Container(int id, int w, int o, int t);
@@ -51,7 +49,6 @@ public:
     bool move_buffer_to_handover(int buffer_id);
     void print_status();
     void step();
-    static double run_simulation(BufferSimulator& sim, AbstractHeuristic& heuristic, int max_steps);
 };
 
 #endif // SIMULATOR_H
