@@ -14,6 +14,7 @@
 
 #include "simulator.h"
 #include "heuristic.h"
+#include "runner.h"
 
 int main(int argc, char** argv) {
 
