@@ -23,12 +23,17 @@ namespace DynStacking {
         bool apply_move(World& w, const Move& m) {
             switch (m.type) {
             case MoveType::ARRIVAL_TO_BUFFER: {
-                if (w.production().size() == 0) {
+                if (w.production().bottomtotop_size() == 0) {
                     return false;
                 }
-                auto& block = w.production().bottomtotop(w.production().size() - 1);
-                auto& buffer = *std::find_if(w.buffers().begin(), w.buffers().end(), [&](const Stack& s) { return s.id() == m.target; });
-                if (buffer.bottomtotop().size() >= buffer.maxheight()) {
+                const auto& block = w.production().bottomtotop(w.production().bottomtotop_size() - 1);
+                auto buffer_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
+                    [&](const Stack& s) { return s.id() == m.target; });
+                if (buffer_it == w.mutable_buffers()->end()) {
+                    return false;
+                }
+                auto& buffer = *buffer_it;
+                if (buffer.bottomtotop_size() >= buffer.maxheight()) {
                     return false;
                 }
                 *buffer.add_bottomtotop() = block;
@@ -36,30 +41,31 @@ namespace DynStacking {
                 return true;
             }
             case MoveType::BUFFER_TO_HANDOVER: {
-                auto& buffer = *std::find_if(w.buffers().begin(), w.buffers().end(), [&](const Stack& s) { return s.id() == m.source; });
-                if (buffer.bottomtotop().size() == 0) {
+                auto buffer_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
+                    [&](const Stack& s) { return s.id() == m.source; });
+                if (buffer_it == w.mutable_buffers()->end() || buffer_it->bottomtotop_size() == 0) {
                     return false;
                 }
-                auto& block = buffer.bottomtotop(buffer.bottomtotop().size() - 1);
+                const auto& block = buffer_it->bottomtotop(buffer_it->bottomtotop_size() - 1);
                 if (!block.ready()) {
                     return false;
                 }
-                *w.mutable_handover()->add_ready() = block;
-                buffer.mutable_bottomtotop()->RemoveLast();
+                *w.mutable_handover()->mutable_block() = block;
+                buffer_it->mutable_bottomtotop()->RemoveLast();
                 return true;
             }
             case MoveType::BUFFER_TO_BUFFER: {
-                auto& src = *std::find_if(w.buffers().begin(), w.buffers().end(), [&](const Stack& s) { return s.id() == m.source; });
-                auto& dst = *std::find_if(w.buffers().begin(), w.buffers().end(), [&](const Stack& s) { return s.id() == m.target; });
-                if (src.bottomtotop().size() == 0) {
+                auto src_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
+                    [&](const Stack& s) { return s.id() == m.source; });
+                auto dst_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
+                    [&](const Stack& s) { return s.id() == m.target; });
+                if (src_it == w.mutable_buffers()->end() || dst_it == w.mutable_buffers()->end() ||
+                    src_it->bottomtotop_size() == 0 || dst_it->bottomtotop_size() >= dst_it->maxheight()) {
                     return false;
                 }
-                if (dst.bottomtotop().size() >= dst.maxheight()) {
-                    return false;
-                }
-                auto& block = src.bottomtotop(src.bottomtotop().size() - 1);
-                *dst.add_bottomtotop() = block;
-                src.mutable_bottomtotop()->RemoveLast();
+                const auto& block = src_it->bottomtotop(src_it->bottomtotop_size() - 1);
+                *dst_it->add_bottomtotop() = block;
+                src_it->mutable_bottomtotop()->RemoveLast();
                 return true;
             }
             case MoveType::NONE: default:
@@ -69,20 +75,17 @@ namespace DynStacking {
 
         std::vector<Move> possible_moves(const World& w) {
             std::vector<Move> moves;
-            if (w.production().size()) {
+            if (w.production().bottomtotop_size()) {
                 for (auto& stack : w.buffers()) {
-                    if (stack.bottomtotop().size() < stack.maxheight()) {
+                    if (stack.bottomtotop_size() < stack.maxheight()) {
                         moves.push_back(Move{MoveType::ARRIVAL_TO_BUFFER, -1, stack.id()});
                     }
                 }
             } else {
-                // NONE
-                moves.push_back(Move{MoveType::NONE, -1, -1});
-
                 // BUFFER -> HANDOVER
                 for (auto& stack : w.buffers()) {
-                    if (stack.bottomtotop().size()) {
-                        const Block& top = stack.bottomtotop(stack.bottomtotop().size() - 1);
+                    if (stack.bottomtotop_size()) {
+                        const Block& top = stack.bottomtotop(stack.bottomtotop_size() - 1);
                         if (top.ready()) {
                             moves.push_back(Move{MoveType::BUFFER_TO_HANDOVER, stack.id(), -1});
                         }
@@ -91,10 +94,10 @@ namespace DynStacking {
 
                 // BUFFER -> BUFFER
                 for (auto& src : w.buffers()) {
-                    if (src.bottomtotop().size()) {
+                    if (src.bottomtotop_size()) {
                         for (auto& dst : w.buffers()) {
                             if (src.id() != dst.id()) {
-                                if (dst.bottomtotop().size() < dst.maxheight()) {
+                                if (dst.bottomtotop_size() < dst.maxheight()) {
                                     moves.push_back(Move{MoveType::BUFFER_TO_BUFFER, src.id(), dst.id()});
                                 }
                             }
@@ -105,20 +108,19 @@ namespace DynStacking {
             return moves;
         }
 
-        std::vector<double> extract_features(World& world){
+        std::vector<double> extract_features(const World& world) {
             std::vector<double> features;
-
-            features.push_back((double) world.now().milliseconds() * 0.001);
-            features.push_back((double) world.production().bottomtotop().size());
-            features.push_back((double) world.handover().ready());
-
-            for (auto& stack : world.buffers())
-                features.push_back((double) stack.bottomtotop().size());
-
+            features.push_back(static_cast<double>(world.now().milliseconds()) * 0.001);
+            features.push_back(static_cast<double>(world.production().bottomtotop_size()));
+            features.push_back(static_cast<double>(world.handover().ready()));
+            
+            for (const auto& stack : world.buffers()) {
+                features.push_back(static_cast<double>(stack.bottomtotop_size()));
+            }
             return features;
         }
 
-        double evaluate_move(const World& world, Move& move, Tree::Tree* tree, std::vector<std::string>& terminal_names){
+        double evaluate_move(const World& world, const Move& move, Tree::Tree* tree, std::vector<std::string>& terminal_names){
             World w_copy = world;
             apply_move(w_copy, move);
             auto features = extract_features(w_copy);
@@ -133,8 +135,9 @@ namespace DynStacking {
             return result;
         }
 
-        Move calculate_move(World& world, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
+        Move calculate_move(const World& world, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
             auto moves = possible_moves(world);
+            if (moves.empty()) return {MoveType::NONE, -1, -1};
             double best_value = -std::numeric_limits<double>::infinity();
             Move best_move = moves[0];
 
@@ -149,72 +152,50 @@ namespace DynStacking {
             return best_move;
         }
 
-        /// If any block on top of a stack can be moved to the handover schedule this move.
-        // void any_handover_move(World& world, CraneSchedule& schedule) {
-        //     if (!world.handover().ready()) {
-        //         return;
-        //     }
-        //     for (auto& stack : world.buffers()) {
-        //         int size = stack.bottomtotop().size();
-        //         if (size == 0) {
-        //             continue;
-        //         }
-        //         auto& top = stack.bottomtotop(size - 1);
-        //         if (top.ready()) {
-        //             auto move = schedule.add_moves();
-        //             move->set_blockid(top.id());
-        //             move->set_sourceid(stack.id());
-        //             move->set_targetid(world.handover().id());
-        //             return;
-        //         }
-        //     }
-        // }
-
-        // /// If the top block of the production stack can be put on a buffer schedule this move.
-        // void clear_production_stack(World& world, CraneSchedule& schedule) {
-        //     auto& src = world.production();
-        //     int size = src.bottomtotop_size();
-        //     if (size == 0) {
-        //         return;
-        //     }
-        //     auto& top = src.bottomtotop(size - 1);
-        //     auto tgt = std::find_if(world.buffers().begin(), world.buffers().end(), [](auto& s) { return s.maxheight() > s.bottomtotop_size(); });
-        //     if (tgt != world.buffers().end()) {
-        //         auto move = schedule.add_moves();
-        //         move->set_blockid(top.id());
-        //         move->set_sourceid(src.id());
-        //         move->set_targetid(tgt->id());
-
-        //     }
-        // }
-
         std::optional<CraneSchedule> plan_moves(World& world, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
             if (world.crane().schedule().moves_size() > 0) {
-                // Leave the existing schedule alone
                 return {};
             }
+            
             CraneSchedule schedule;
-            // any_handover_move(world, schedule);
-            // clear_production_stack(world, schedule);
-
             auto best_move = calculate_move(world, tree, terminal_names);
-            auto move = schedule.add_moves();
-            auto& src = *std::find_if(world.buffers().begin(), world.buffers().end(), [&](const Stack& s) { return s.id() == best_move.source; });
-            auto& dst = *std::find_if(world.buffers().begin(), world.buffers().end(), [&](const Stack& s) { return s.id() == best_move.target; });
-            move->set_blockid(src.bottomtotop(src.bottomtotop_size() - 1).id());
-            move->set_sourceid(src.id());
-            move->set_targetid(dst.id());
+            
+            if (best_move.type != MoveType::NONE) {
+                auto* move = schedule.add_moves();
+                
+                if (best_move.type == MoveType::ARRIVAL_TO_BUFFER) {
+                    if (world.production().bottomtotop_size() > 0) {
+                        move->set_blockid(world.production().bottomtotop(world.production().bottomtotop_size() - 1).id());
+                        move->set_sourceid(world.production().id());
+                    }
+                } else {
+                    auto src_it = std::find_if(world.buffers().begin(), world.buffers().end(),
+                                            [&](const Stack& s) { return s.id() == best_move.source; });
+                    if (src_it != world.buffers().end() && src_it->bottomtotop_size() > 0) {
+                        move->set_blockid(src_it->bottomtotop(src_it->bottomtotop_size() - 1).id());
+                        move->set_sourceid(src_it->id());
+                    }
+                }
 
-            if (schedule.moves_size() > 0) {
-                auto sequence = world.crane().schedule().sequencenr();
-                schedule.set_sequencenr(sequence + 1);
+                if (best_move.type == MoveType::BUFFER_TO_HANDOVER) {
+                    if (world.handover().ready()) {
+                        move->set_targetid(world.handover().id());
+                    }
+                }
+                else {
+                    auto dst_it = std::find_if(world.buffers().begin(), world.buffers().end(),
+                                            [&](const Stack& s) { return s.id() == best_move.target; });
+                    if (dst_it != world.buffers().end() && dst_it->bottomtotop_size() < dst_it->maxheight()) {
+                        move->set_targetid(dst_it->id());
+                    }
+                }
+                
+                schedule.set_sequencenr(1);
                 std::cout << schedule.DebugString() << std::endl;
                 return schedule;
             }
-            else {
-                return {};
-            }
-
+            
+            return {};
         }
 
         std::optional<std::string> calculate_answer(void* world_data, size_t len, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
