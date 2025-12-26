@@ -1,4 +1,5 @@
 #include <optional>
+#include <ECF/ECF.h>
 
 namespace DynStacking {
 	namespace HotStorage {

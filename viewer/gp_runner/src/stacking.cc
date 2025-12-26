@@ -5,6 +5,7 @@
 
 #include "hotstorage/hotstorage_model.pb.h"
 #include "hotstorage/heuristic.h"
+#include "SimulatorEvalOp.h"
 
 using std::cout;
 using std::endl;
@@ -17,9 +18,13 @@ int main(int argc, char* argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     StateP state(new State);
+    state->setEvalOp(new SimulatorEvalOp);
+    const char* arr[] = {"state", "/data/parameters.txt"};
+    const char** ptr = arr;
+    state->initialize(2, ptr);
     XMLNode xInd = XMLNode::parseFile("/data/best.txt", "Individual");
 	IndividualP ind = (IndividualP) new Individual(state);
-	ind->read(xInd); 
+	ind->read(xInd);
     Tree::Tree* tree = (Tree::Tree*)ind->getGenotype().get();
 	std::vector<std::string> terminal_names_ = { "t1", "t2", "t3", "t4", "t5", "t6" };
 

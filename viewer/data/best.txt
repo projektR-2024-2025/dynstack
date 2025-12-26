@@ -1,0 +1,4 @@
+<Individual size="1">
+	<FitnessMin value="-1.9"/>
+	<Tree size="13">t1</Tree>
+</Individual>

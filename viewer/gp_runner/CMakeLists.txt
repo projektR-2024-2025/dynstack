@@ -15,6 +15,7 @@ add_executable(stacking
   "src/hotstorage/heuristic.cc"
   "src/hotstorage/hotstorage_model.pb.cc"
   "src/hotstorage/hotstorage_model.pb.h"
+  "src/SimulatorEvalOp.cpp"
 )
 
 target_include_directories(stacking PRIVATE /usr/local/include)
