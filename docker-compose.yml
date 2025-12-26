@@ -1,10 +1,15 @@
 services:
   dynview:
-    image: micamaca44/dynview
+    container_name: dynview
+    build: ./viewer/sim_runner
+    # image: micamaca44/dynview
     ports:
       - "2222:2222"
       - "8080:8080"
       - "8765:8765"
-    environment:
-
-      - ASPNETCORE_URLS=http://+:8765,http://+:2222,http://+:8080
+  stacker:
+    container_name: stacker
+    build: ./viewer/gp_runner
+    # image: micamaca44/stacker
+    volumes:
+      - ./best.txt:/data/best.txt
