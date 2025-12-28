@@ -1,14 +1,15 @@
 services:
   dynview:
     container_name: dynview
-    build: ./viewer/sim_runner
-    # image: micamaca44/dynview
+    # build: ./viewer/sim_runner
+    image: micamaca44/dynview:latest
     ports:
       - "2222:2222"
       - "8080:8080"
       - "8765:8765"
   stacker:
     container_name: stacker
-    build: ./viewer/gp_runner
+    # build: ./viewer/gp_runner
+    image: micamaca44/stacker:latest
     volumes:
       - ./viewer/data:/data:z
