@@ -1,8 +1,8 @@
 #ifndef SIMULATOR_EVAL_OP_H
 #define SIMULATOR_EVAL_OP_H
 #include <ECF/ECF.h>
-#include "runner.h"
-#include "heuristic.h"
+#include "Runner.h"
+#include "Heuristic.h"
 
 class SimulatorEvalOp : public EvaluateOp
 {
