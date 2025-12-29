@@ -1,12 +1,28 @@
-### DynStack - A Benchmarking Framework for Dynamic Stacking in Warehouse Operations
+# DynStack Fork
 
-In this repository you find the simulation environments and policies to get started into benchmarking dynamic stacking problems. For more information on how to get started with running tests and benchmarks on your own machine, please refer to the documentation given at [simulation/README.md](simulation/README.md).
+Ovaj repozitorij je kreiran u sklopu Diplomskog projekta na FER-u u akademskoj godini 25/26. Projekt se bavi korištenjem genetskih algoritama za efikasno slaganje kontejnera u dinamičkom okruženju. Kao inspiraciju je uzeto natjecanje [Dynstak](https://dynstack.adaptop.at/) koje se održava svake godine u sklopu konferencije [GECCO](https://gecco-2025.sigevo.org/HomePage).
 
-If you intend to do research using DynStack we refer to the following papers. We're happy to also include your paper, please contact us at dynstack@adaptop.at.
+## Učenje
 
-* Beham, A., Leitner, S., Karder, J., Werth, B., Wagner, S. 2022. DynStack - A Benchmarking Framework for Dynamic Optimization Problems in Warehouse Operations. In Proceedings of the 2022 Genetic and Evolutionary Computation Conference Companion (GECCO '22). Association for Computing Machinery, pp. 1984-1991. https://dl.acm.org/doi/10.1145/3520304.3533957
-* Karder, J. A., Beham, A., Werth, B., Wagner, S., Affenzeller, M. 2022. Integrated Machine Learning in Open-Ended Crane Scheduling: Learning Movement Speeds and Service Times. In Procedia Computer Science (Vol. 200, pp. 1031) https://www.sciencedirect.com/science/article/pii/S1877050922003118
-* Beham, A., Raggl, S., Karder, J., Werth, B., Wagner, S. 2022. Dynamic Warehouse Environments for Crane Stacking and Scheduling. Procedia Computer Science, 200, 1461-1470. https://doi.org/10.1016/j.procs.2022.01.347
-* Werth, B.; Karder, J.; Beham, A.; Wagner, S. 2021. Dynamic landscape analysis for open-ended stacking. In Proceedings of the 2021 Genetic and Evolutionary Computation Conference Companion (GECCO '21). Association for Computing Machinery, pp. 1700-1707. https://dl.acm.org/doi/10.1145/3449726.3463153
-* Raggl, S.; Beham, A.; Wagner, S; Affenzeller, M. 2020. Effects of Arrival Uncertainty on Solver Performance in Dynamic Stacking Problems. Proceedings of the 32nd European Modeling and Simulation Symposium EMSS2020, pp. 193-200. https://doi.org/10.46354/i3m.2020.emss.027
-* Raggl, S.; Beham, A.; Wagner, S; Affenzeller, M. 2020. Solution Approaches for the Dynamic Stacking Problem. In Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion (GECCO '20). Association for Computing Machinery, pp. 1652-1660. https://dl.acm.org/doi/10.1145/3377929.3398111
+Za učenje modela smo napisali svoj simulator, koji je jednostavnija verzija službenog simulatora, u vanila C++. Za samo učenje je korištena biblioteka [ECF](https://github.com/djakobovic/ECF).
+
+Za pokretanje procesa učenja pratite sljedeće korake:
+1. Preuzmite biblioteku [ECF](https://github.com/djakobovic/ECF)
+2. Preuzmite ovaj repozitoriji
+3. Prebacite se u direktoriji `dynstack/starterkits/cpp/`
+4. Pokrenite naredbu `cmake -S . -B build`, a zatim `cmake --build build`
+5. Proces pokrenite naredbom `./build/buffer_simulator ./src/parameters.txt`
+
+U datoteci _best.txt_ je spremljena najbolja jedinka.
+
+## Vizualizacija
+
+Za vizualizaciju je napisan jednostavan web server (može se pokrenuti putem Docker kontejnera) koji prikazuje stanje službenog simulatora, a za pokretanje najboljeg modela je kreiran wrapper koji je isto dostupan putem Docker kontejnera.
+
+Oba kontejnera se mogu pokrenuti na sljedeći način:
+1. Datoteku parameters.txt i najbolju jedinku u obliku datoteke best.txt kopirajte u direktoriji `dynstack/viewer/data`
+2. Pokrenite Docker engine na svojem računalu
+3. Preuzmite docker-compose datoteku
+4. Pokrenite ju putem naredbe `docker-compose up -d`
+
+Za _buildanje_ kontejnera trebate preuzeti cijeli repozitoriji i u docker-compose datoteci otkomentirati linije build, a zakomentirati linije image.
