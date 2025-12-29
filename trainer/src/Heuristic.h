@@ -1,7 +1,7 @@
 #ifndef HEURISTIC_H
 #define HEURISTIC_H
 
-#include "simulator.h"
+#include "Simulator.h"
 
 #include <vector>
 #include <string>
@@ -27,25 +27,25 @@ struct Move {
 class AbstractHeuristic {
 public:
     virtual ~AbstractHeuristic() = default;
-    virtual Move calculate_move(BufferSimulator& sim) = 0;
-    static std::vector<Move> possible_moves(BufferSimulator& sim);
-    static bool apply_move(BufferSimulator& sim, Move& m);
+    virtual Move calculate_move(Simulator& sim) = 0;
+    static std::vector<Move> possible_moves(Simulator& sim);
+    static bool apply_move(Simulator& sim, Move& m);
 };
 
 class CustomHeuristic : public AbstractHeuristic {
 public:
-    Move calculate_move(BufferSimulator& sim) override;
+    Move calculate_move(Simulator& sim) override;
 };
 
 class PriorityHeuristic : public AbstractHeuristic {
 public:
     PriorityHeuristic(Tree::Tree* tree, std::vector<std::string>& terminal_names);
-    Move calculate_move(BufferSimulator& sim) override;
+    Move calculate_move(Simulator& sim) override;
 private:
     Tree::Tree* priority_tree;
     std::vector<std::string> terminals;
 
-    double evaluate_move(BufferSimulator& sim, Move& m);
+    double evaluate_move(Simulator& sim, Move& m);
     std::vector<double> extract_features(World& w);
 };
 

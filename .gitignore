@@ -9,8 +9,9 @@
 *.ipch
 .vs/
 
-**/external/**
-
 **/build/**
 **/.vscode/**
 **/.vs/*
+
+**/best.txt
+**/log.txt

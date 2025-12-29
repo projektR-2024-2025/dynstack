@@ -1,6 +1,6 @@
-#include "heuristic.h"
+#include "Heuristic.h"
 
-bool AbstractHeuristic::apply_move(BufferSimulator& sim, Move& m) {
+bool AbstractHeuristic::apply_move(Simulator& sim, Move& m) {
     switch(m.type) {
         case MoveType::ARRIVAL_TO_BUFFER: return sim.move_arrival_to_buffer(m.to);
         case MoveType::BUFFER_TO_BUFFER: return sim.move_buffer_to_buffer(m.from, m.to);
@@ -9,7 +9,7 @@ bool AbstractHeuristic::apply_move(BufferSimulator& sim, Move& m) {
     }
 }
 
-std::vector<Move> AbstractHeuristic::possible_moves(BufferSimulator& sim) {
+std::vector<Move> AbstractHeuristic::possible_moves(Simulator& sim) {
     std::vector<Move> moves;
     World w = sim.getWorld();
 
@@ -47,7 +47,7 @@ std::vector<Move> AbstractHeuristic::possible_moves(BufferSimulator& sim) {
 
 // CUSTOM HEURISTIC
 
-Move CustomHeuristic::calculate_move(BufferSimulator& sim) {
+Move CustomHeuristic::calculate_move(Simulator& sim) {
     World w = sim.getWorld();
     if (!w.arrival_stack.empty() && w.buffers[0].size() < w.max_buffer_size) {
         return Move{MoveType::ARRIVAL_TO_BUFFER, -1, 0};
@@ -83,9 +83,9 @@ std::vector<double> PriorityHeuristic::extract_features(World& w) {
     return features;
 }
 
-double PriorityHeuristic::evaluate_move(BufferSimulator& sim, Move& m) {
+double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
 
-    BufferSimulator sim_copy = sim;
+    Simulator sim_copy = sim;
 
     apply_move(sim_copy, m) ;
 
@@ -103,7 +103,7 @@ double PriorityHeuristic::evaluate_move(BufferSimulator& sim, Move& m) {
 }
 
 
-Move PriorityHeuristic::calculate_move(BufferSimulator& sim) {
+Move PriorityHeuristic::calculate_move(Simulator& sim) {
     World w = sim.getWorld();
     std::vector<Move> moves = possible_moves(sim) ;
 

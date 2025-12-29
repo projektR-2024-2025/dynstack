@@ -9,9 +9,8 @@ Za učenje modela smo napisali svoj simulator, koji je jednostavnija verzija slu
 Za pokretanje procesa učenja pratite sljedeće korake:
 1. Preuzmite biblioteku [ECF](https://github.com/djakobovic/ECF)
 2. Preuzmite ovaj repozitoriji
-3. Prebacite se u direktoriji `dynstack/starterkits/cpp/`
 4. Pokrenite naredbu `cmake -S . -B build`, a zatim `cmake --build build`
-5. Proces pokrenite naredbom `./build/buffer_simulator ./src/parameters.txt`
+5. Proces pokrenite naredbom `./build/dynstack_trainer parameters.txt`
 
 U datoteci _best.txt_ je spremljena najbolja jedinka.
 

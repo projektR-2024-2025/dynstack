@@ -9,7 +9,7 @@ FitnessP SimulatorEvalOp::evaluate(IndividualP individual)
 	std::vector<std::string> terminal_names_ = { "t1", "t2", "t3", "t4", "t5", "t6" };
 	PriorityHeuristic heuristic(tree, terminal_names_);
 
-	BufferSimulator sim(2, true);
+	Simulator sim(2, true);
 
 	double score = run_simulation(sim, heuristic, 50);
 	fitness->setValue(score);
