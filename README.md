@@ -26,3 +26,5 @@ Oba kontejnera se mogu pokrenuti na sljedeći način:
 4. Pokrenite ju putem naredbe `docker-compose up -d`
 
 Za _buildanje_ kontejnera trebate preuzeti cijeli repozitoriji i u docker-compose datoteci otkomentirati linije build, a zakomentirati linije image.
+
+Moguće je pokrenuti i samo kontejner za vizualizaciju te koristiti neko od rješenja iz službenog repozitorija za povezivanje s njim.

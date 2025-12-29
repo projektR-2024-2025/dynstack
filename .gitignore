@@ -9,7 +9,8 @@
 *.ipch
 .vs/
 
-external/*
+**/external/**
 
-*/build/*
-*/.vscode/*
+**/build/**
+**/.vscode/**
+**/.vs/*
