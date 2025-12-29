@@ -22,9 +22,9 @@ Za vizualizaciju je napisan jednostavan web server (može se pokrenuti putem Doc
 Oba kontejnera se mogu pokrenuti na sljedeći način:
 1. Datoteku parameters.txt i najbolju jedinku u obliku datoteke best.txt kopirajte u direktoriji `dynstack/viewer/data`
 2. Pokrenite Docker engine na svojem računalu
-3. Preuzmite docker-compose datoteku
+3. Preuzmite [docker-compose](docker-compose.yml) datoteku
 4. Pokrenite ju putem naredbe `docker-compose up -d`
 
-Za _buildanje_ kontejnera trebate preuzeti cijeli repozitoriji i u docker-compose datoteci otkomentirati linije build, a zakomentirati linije image.
+Za _buildanje_ kontejnera trebate preuzeti cijeli repozitoriji i u [docker-compose](docker-compose.yml) datoteci otkomentirati linije build, a zakomentirati linije image.
 
 Moguće je pokrenuti i samo kontejner za vizualizaciju te koristiti neko od rješenja iz službenog repozitorija za povezivanje s njim.
