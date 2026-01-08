@@ -1,4 +1,4 @@
-#include "simulator.h"
+#include "Simulator.h"
 
 Container::Container(int id, int w, int o, int t) : id(id), wait(w), overdue(o), arrival_time(t) {}
 
@@ -31,7 +31,7 @@ int Container::get_overdue(int current_time) const {
     }
 }
 
-void BufferSimulator::initalize_buffers() {
+void Simulator::initalize_buffers() {
     for (int i = 0; i < 3; ++i) {
         std::uniform_int_distribution<> buff_dist(2, 4);
         for (int j = 0; j < buff_dist(rng); j++) {
@@ -42,7 +42,7 @@ void BufferSimulator::initalize_buffers() {
     }
 }
 
-void BufferSimulator::generate_arrival() {
+void Simulator::generate_arrival() {
     std::uniform_int_distribution<> arrival_dist(0, 20);
     if (arrival_dist(rng) < arrival_density) {
         if (!arrival_stack.empty()) {  // u slucaju da je vec nesto na arrival_stacku
@@ -57,7 +57,7 @@ void BufferSimulator::generate_arrival() {
     }
 }
 
-bool BufferSimulator::process_handover_top() {
+bool Simulator::process_handover_top() {
     if (handover_stack.empty()) return false;
     std::uniform_int_distribution<> process_dist(0, 10);
     if (process_dist(rng) < arrival_density) {
@@ -70,7 +70,7 @@ bool BufferSimulator::process_handover_top() {
     return false;
 }
 
-BufferSimulator::BufferSimulator(int arrival_density = 1, bool initalize_buffers = false)
+Simulator::Simulator(int arrival_density = 1, bool initalize_buffers = false)
     : arrival_density(arrival_density) {
     std::random_device rd;
     rng.seed(rd());
@@ -78,12 +78,12 @@ BufferSimulator::BufferSimulator(int arrival_density = 1, bool initalize_buffers
         this->initalize_buffers();
 }
 
-World BufferSimulator::getWorld() {
+World Simulator::getWorld() {
     return World{ time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, max_buffer_size, {KPI[0], KPI[1], KPI[2]} };
 }
 
 // Manual move instructions
-bool BufferSimulator::move_arrival_to_buffer(int buffer_id) {
+bool Simulator::move_arrival_to_buffer(int buffer_id) {
     if (!is_crane_avail) {
         if (print_steps)
             std::cout << "Crane is not available!" << std::endl;
@@ -109,7 +109,7 @@ bool BufferSimulator::move_arrival_to_buffer(int buffer_id) {
     return true;
 }
 
-bool BufferSimulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id) {
+bool Simulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id) {
     if (!is_crane_avail) {
         if (print_steps)
             std::cout << "Crane is not available!" << std::endl;
@@ -136,7 +136,7 @@ bool BufferSimulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id
     return true;
 }
 
-bool BufferSimulator::move_buffer_to_handover(int buffer_id) {
+bool Simulator::move_buffer_to_handover(int buffer_id) {
     if (!is_crane_avail) {
         if (print_steps)
             std::cout << "Crane is not available!" << std::endl;
@@ -171,7 +171,7 @@ bool BufferSimulator::move_buffer_to_handover(int buffer_id) {
     return true;
 }
 
-void BufferSimulator::print_status() {
+void Simulator::print_status() {
     std::cout << "\n--- Status at time " << time << " (Processed: " << processed_count << ") ---\n";
     std::cout << "Arrival: " << arrival_stack.size() << " | ";
     std::cout << "Buffers: [" << buffers[0].size() << "," << buffers[1].size() << "," << buffers[2].size() << "] | ";
@@ -190,7 +190,7 @@ void BufferSimulator::print_status() {
     std::cout << std::endl;
 }
 
-void BufferSimulator::step() {
+void Simulator::step() {
     generate_arrival();
     process_handover_top();
     ++time;

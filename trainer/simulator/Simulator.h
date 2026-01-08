@@ -22,7 +22,7 @@ struct World {
     int KPI[3];
 };
 
-class BufferSimulator {
+class Simulator {
 private:
     int arrival_density;
     int time = 0;
@@ -41,8 +41,8 @@ private:
     bool process_handover_top();
 
 public:
-    BufferSimulator(int arrival_density, bool initalize_buffers);
-    ~BufferSimulator() = default;
+    Simulator(int arrival_density, bool initalize_buffers);
+    ~Simulator() = default;
 
     World getWorld();
     bool move_arrival_to_buffer(int buffer_id);
