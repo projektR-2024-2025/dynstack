@@ -2,6 +2,7 @@
 #define RUNNER_H
 #include "Simulator.h"
 #include "Heuristic.h"
+#include "Parameters.h"
 
 static double run_simulation(Simulator& sim, AbstractHeuristic& heuristic, int max_steps) {
     for (int step = 0; step < max_steps; ++step) {
@@ -10,7 +11,7 @@ static double run_simulation(Simulator& sim, AbstractHeuristic& heuristic, int m
         sim.step();
     }
     World w = sim.getWorld();
-    return 0.5 * w.KPI[0] - 0.4 * w.KPI[1] + 0.1 * w.KPI[2];
+    return Parameters::KPI_W1 * w.KPI[0] + Parameters::KPI_W2 * w.KPI[1] + Parameters::KPI_W3 * w.KPI[2];
 }
 
 #endif

@@ -3,6 +3,7 @@
 #include <ECF/ECF.h>
 #include "Runner.h"
 #include "Heuristic.h"
+#include "Parameters.h"
 
 class SimulatorEvalOp : public EvaluateOp
 {

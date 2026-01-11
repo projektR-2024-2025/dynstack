@@ -31,9 +31,9 @@ FitnessP SimulatorEvalOp::evaluate(IndividualP individual)
 
 	PriorityHeuristic heuristic(tree, this->terminal_names_);
 
-	Simulator sim(2, true);
+	Simulator sim;
 
-	double score = run_simulation(sim, heuristic, 50);
+	double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
 	fitness->setValue(score);
 
     return fitness;

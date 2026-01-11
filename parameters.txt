@@ -12,3 +12,20 @@
         <Entry key="log.filename">log.txt</Entry>
     </Registry>
 </ECF>
+<Conf>
+    <BestFile>best.txt</BestFile>
+    <KpiW1>0.5</KpiW1>
+    <KpiW2>-0.4</KpiW2>
+    <KpiW3>0.1</KpiW3>
+    <PrintSteps>0</PrintSteps>
+    <MaxArrivalSize>3</MaxArrivalSize>
+    <MaxBufferSize>8</MaxBufferSize>
+    <MinInitialBuffer>2</MinInitialBuffer>
+    <MaxInitialBuffer>4</MaxInitialBuffer>
+    <MinWaitTime>1</MinWaitTime>
+    <MaxWaitTime>15</MaxWaitTime>
+    <ArrivalProbability>10</ArrivalProbability>
+    <HandoverProbability>20</HandoverProbability>
+    <InitalizeBuffers>1</InitalizeBuffers>
+    <SimulationSteps>50</SimulationSteps>
+</Conf>
