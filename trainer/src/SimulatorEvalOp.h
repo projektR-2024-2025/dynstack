@@ -6,8 +6,12 @@
 
 class SimulatorEvalOp : public EvaluateOp
 {
+protected:
+    std::vector<std::string> terminal_names_;
+
 public:
     FitnessP evaluate(IndividualP individual);
+    bool initialize(StateP);
 };
 typedef std::shared_ptr<SimulatorEvalOp> SimulatorEvalOpP;
 
