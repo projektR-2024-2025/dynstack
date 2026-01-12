@@ -35,6 +35,18 @@ public:
 class CustomHeuristic : public AbstractHeuristic {
 public:
     Move calculate_move(Simulator& sim) override;
+    
+private:
+    long long TUD(const Container& c, World& w);
+    bool has_free_space(World& w, int buffer_id);
+    int buffer_with_least_ready(World& w);
+    int best_ready_on_top(World& w);
+    struct CoveredReady {
+        int buffer_id;
+        int blocking_depth;
+    };
+    bool covered_ready_block(World& w, CoveredReady& out);
+    int buffer_without_ready_on_top(World& w, int forbidden_buffer);
 };
 
 class PriorityHeuristic : public AbstractHeuristic {
