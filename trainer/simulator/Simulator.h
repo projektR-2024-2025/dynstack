@@ -30,6 +30,7 @@ private:
     std::stack<Container> arrival_stack, handover_stack;
     std::stack<Container> buffers[3];
     std::mt19937 rng;
+    inline static double seed = 4444;
     int next_id = 1;
     int processed_count = 0;
     int KPI[3] = {0, 0, 0};
@@ -49,6 +50,8 @@ public:
     bool move_buffer_to_handover(int buffer_id);
     void print_status();
     void step();
+
+    static void seed_simulator();
 };
 
 #endif // SIMULATOR_H

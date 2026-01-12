@@ -1,9 +1,9 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
+
 #include <vector>
 #include <string>
 #include <ECF/ECF.h>
-#include <unordered_map>
 
 class Parameters
 {
@@ -22,6 +22,7 @@ private:
 public:
 	// main
 	inline static std::string BEST_FILE = "best.txt";
+	inline static bool USING_ECF = false;
 	// Runner
 	inline static float KPI_W1 = 0.5;
 	inline static float KPI_W2 = -0.4;
@@ -41,6 +42,9 @@ public:
 	inline static int SIM_STEPS = 50;
 
 	static void readParameters(const std::string& filename) {
+		if (!XMLNode::parseFile(filename.c_str()).getChildNode("ECF").isEmpty())
+			USING_ECF = true;
+
 		XMLNode conf = XMLNode::parseFile(filename.c_str()).getChildNode("Conf");
 
 		if (!conf.isEmpty()) {

@@ -71,8 +71,7 @@ bool Simulator::process_handover_top() {
 }
 
 Simulator::Simulator() {
-    std::random_device rd;
-    rng.seed(rd());
+    rng.seed(Simulator::seed);
     if (Parameters::INITALIZE_BUFFERS)
         this->initalize_buffers();
 }
@@ -194,4 +193,9 @@ void Simulator::step() {
     process_handover_top();
     ++time;
     is_crane_avail = true;
+}
+
+void Simulator::seed_simulator() {
+    std::random_device rd;
+    Simulator::seed = rd();
 }
