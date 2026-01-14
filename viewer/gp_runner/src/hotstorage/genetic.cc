@@ -109,16 +109,116 @@ namespace DynStacking {
         }
 
         // TODO
-        std::vector<double> extract_features(const World& world) {
+        std::vector<double> extract_features(const World& before, const World& after, Move& m) {
             std::vector<double> features;
-            features.push_back(static_cast<double>(world.now().milliseconds()) * 0.001);
-            features.push_back(static_cast<double>(world.production().bottomtotop_size()));
-            features.push_back(static_cast<double>(world.handover().ready()));
-            
-            for (const auto& stack : world.buffers()) {
-                features.push_back(static_cast<double>(stack.bottomtotop_size()));
+            auto now_before = before.now().milliseconds();
+            auto now_after  = after.now().milliseconds();
+
+            double delta_arrival = double(after.production().bottomtotop_size()- before.production().bottomtotop_size()) ;
+
+            int ready_before = 0;
+            int ready_after  = 0;
+            int blocks_before = before.production().bottomtotop_size();
+            int blocks_after  = after.production().bottomtotop_size();
+            long long lateness_before = 0;
+            long long lateness_after  = 0;
+            int overdue_before = 0;
+            int overdue_after  = 0;
+            for (const auto& s : before.buffers()){
+                blocks_before += s.bottomtotop_size();
+                for (const auto& b : s.bottomtotop()){
+                    if (b.ready()) ready_before++;
+                    long long tud = b.due().milliseconds() - now_before;
+                    if (tud < 0) lateness_before += tud;
+                    if (now_before > b.due().milliseconds()) overdue_before++;
+                }
             }
-            return features;
+            for (const auto& s : after.buffers()){
+                blocks_after += s.bottomtotop_size();
+                for (const auto& b : s.bottomtotop()){
+                    if (b.ready()) ready_after++;
+                    long long tud = b.due().milliseconds() - now_after;
+                    if (tud < 0) lateness_after += tud;
+                    if (now_after > b.due().milliseconds()) overdue_after++;
+                }
+            }
+            double delta_total_ready = double(ready_after - ready_before);
+            double delta_total_blocks = double(blocks_after - blocks_before);
+            double delta_total_lateness = double(lateness_after - lateness_before);
+            double delta_overdue_blocks = double(overdue_after - overdue_before) ;
+
+            double handover_ready_before = (before.handover().ready() ? 1.0 : 0.0) ;
+            double handover_ready_after = (after.handover().ready()  ? 1.0 : 0.0);
+
+            const Block* moved = nullptr;
+
+            if (m.type == MoveType::ARRIVAL_TO_BUFFER && before.production().bottomtotop_size() > 0) {
+                moved = &before.production().bottomtotop(before.production().bottomtotop_size() - 1);
+            } else if (m.source >= 0) {
+                for (const auto& s : before.buffers()) {
+                    if (s.id() == m.source && s.bottomtotop_size() > 0) {
+                        moved = &s.bottomtotop(s.bottomtotop_size() - 1);
+                        break;
+                    }
+                }
+            }
+            double moved_ready = moved && moved->ready() ? 1.0 : 0.0 ;
+            double moved_tud = moved ? double(moved->due().milliseconds() - now_before) : 0.0 ;
+
+            double src_size = 0.0;
+            double src_ready = 0.0;
+            double src_overdue = 0.0;
+            if (m.type == MoveType::ARRIVAL_TO_BUFFER) {
+                src_size = double(before.production().bottomtotop_size());
+                for (const auto& b : before.production().bottomtotop()) {
+                    if (b.ready()) src_ready++;
+                    if (now_before > b.due().milliseconds()) src_overdue++;
+                }
+            }
+            else if (m.source >= 0) {
+                for (const auto& s : before.buffers()) {
+                    if (s.id() == m.source) {
+                        src_size = double(s.bottomtotop_size());
+                        for (const auto& b : s.bottomtotop()) {
+                            if (b.ready()) src_ready++;
+                            if (now_before > b.due().milliseconds()) src_overdue++;
+                        }
+                        break;
+                    }
+                }
+            }
+            double dest_size = 0.0;
+            double dest_ready = 0.0;
+            double dest_overdue = 0.0;
+            if (m.target >= 0) {
+                for (const auto& s : after.buffers()) {
+                    if (s.id() == m.target) {
+                        dest_size = double(s.bottomtotop_size());
+                        for (const auto& b : s.bottomtotop()) {
+                            if (b.ready()) dest_ready++;
+                            if (now_after > b.due().milliseconds()) dest_overdue++;
+                        }
+                        break;
+                    }
+                }
+            }
+            features.push_back(delta_arrival);
+            features.push_back(delta_total_ready);
+            features.push_back(delta_total_blocks);
+            features.push_back(delta_total_lateness);
+            features.push_back(delta_overdue_blocks);
+            features.push_back(handover_ready_before);
+            features.push_back(handover_ready_after);
+            features.push_back(moved_ready);
+            features.push_back(moved_tud);
+            features.push_back(src_size);
+            features.push_back(src_ready);
+            features.push_back(src_overdue);
+            features.push_back(dest_size);
+            features.push_back(dest_ready);
+            features.push_back(dest_overdue);
+
+            return features ;
         }
 
         double evaluate_move(const World& world, const Move& move, Tree::Tree* tree, std::vector<std::string>& terminal_names){
