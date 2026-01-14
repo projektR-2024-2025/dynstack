@@ -30,7 +30,7 @@ private:
     std::stack<Container> arrival_stack, handover_stack;
     std::stack<Container> buffers[3];
     std::mt19937 rng;
-    inline static double seed = 4444;
+    inline static double seed = Parameters::SIMULATOR_SEED;
     int next_id = 1;
     int processed_count = 0;
     int KPI[3] = {0, 0, 0};

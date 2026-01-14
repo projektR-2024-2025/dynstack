@@ -14,12 +14,13 @@
 </ECF>
 <Conf>
     <BestFile>best.txt</BestFile>
+    <RunBest>1</RunBest>
     <KpiW1>0.5</KpiW1>
     <KpiW2>-0.4</KpiW2>
     <KpiW3>0.1</KpiW3>
     <PrintSteps>0</PrintSteps>
     <MaxArrivalSize>3</MaxArrivalSize>
-    <MaxBufferSize>8</MaxBufferSize>
+    <MaxBufferSize>12</MaxBufferSize>
     <MinInitialBuffer>2</MinInitialBuffer>
     <MaxInitialBuffer>4</MaxInitialBuffer>
     <MinWaitTime>1</MinWaitTime>
@@ -28,4 +29,5 @@
     <HandoverProbability>20</HandoverProbability>
     <InitalizeBuffers>1</InitalizeBuffers>
     <SimulationSteps>1000</SimulationSteps>
+    <SimulatorSeed>4444</SimulatorSeed>
 </Conf>

@@ -23,6 +23,7 @@ public:
 	// main
 	inline static std::string BEST_FILE = "best.txt";
 	inline static bool USING_ECF = false;
+	inline static bool RUN_BEST = false;
 	// Runner
 	inline static float KPI_W1 = 0.5;
 	inline static float KPI_W2 = -0.4;
@@ -38,6 +39,7 @@ public:
 	inline static int MAX_WAIT_TIME = 15;
 	inline static int ARRIVAL_PROB = 10; // /100
 	inline static int HANDOVER_PROB = 20; // /100
+	inline static int SIMULATOR_SEED = 4444;
 	// SimulatorEvalOp
 	inline static int SIM_STEPS = 50;
 
@@ -48,6 +50,7 @@ public:
 		XMLNode conf = XMLNode::parseFile(filename.c_str()).getChildNode("Conf");
 
 		if (!conf.isEmpty()) {
+			readParam(conf, RUN_BEST, "RunBest");
 			readParam(conf, BEST_FILE, "BestFile");
 
 			readParam(conf, KPI_W1, "KpiW1");
@@ -64,6 +67,7 @@ public:
 			readParam(conf, MAX_WAIT_TIME, "MaxWaitTime");
 			readParam(conf, ARRIVAL_PROB, "ArrivalProbability");
 			readParam(conf, HANDOVER_PROB, "HandoverProbability");
+			readParam(conf, SIMULATOR_SEED, "SimulatorSeed");
 
 			readParam(conf, SIM_STEPS, "SimulationSteps");
 		}

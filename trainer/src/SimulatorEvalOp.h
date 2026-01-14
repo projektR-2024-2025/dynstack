@@ -7,10 +7,8 @@
 
 class SimulatorEvalOp : public EvaluateOp
 {
-protected:
-    std::vector<std::string> terminal_names_;
-
 public:
+    std::vector<std::string> terminal_names_;
     FitnessP evaluate(IndividualP individual);
     bool initialize(StateP);
 };

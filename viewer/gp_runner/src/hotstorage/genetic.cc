@@ -109,7 +109,7 @@ namespace DynStacking {
         }
 
         // TODO
-        std::vector<double> extract_features(const World& before, const World& after, Move& m) {
+        std::vector<double> extract_features(const World& before, const World& after, const Move& m) {
             std::vector<double> features;
             auto now_before = before.now().milliseconds();
             auto now_after  = after.now().milliseconds();
@@ -224,7 +224,7 @@ namespace DynStacking {
         double evaluate_move(const World& world, const Move& move, Tree::Tree* tree, std::vector<std::string>& terminal_names){
             World w_copy = world;
             apply_move(w_copy, move);
-            auto features = extract_features(w_copy);
+            auto features = extract_features(world, w_copy, move);
 
             for (size_t i = 0; i < terminal_names.size(); ++i) {
                 tree->setTerminalValue(terminal_names[i], (void*)&features[i]);
