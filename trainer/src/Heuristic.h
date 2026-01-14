@@ -58,7 +58,7 @@ private:
     std::vector<std::string> terminals;
 
     double evaluate_move(Simulator& sim, Move& m);
-    std::vector<double> extract_features(World& w);
+    std::vector<double> extract_features(const World& before, const World& after, Move& m);
 };
 
 #endif
