@@ -20,7 +20,8 @@ bool SimulatorEvalOp::initialize(StateP state)
         this->terminal_names_.push_back(token);
     }
 
-    Simulator::seed_simulator();
+    if (Parameters::SEED_SIM)
+        Simulator::seed_simulator();
 
 	return true;
 }

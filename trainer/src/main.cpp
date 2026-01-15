@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv) {
 
-    Parameters::readParameters(argv[1]);
+    Parameters::readParameters(argc, argv);
 
     if (Parameters::USING_ECF) {
         StateP state(new State);
@@ -31,16 +31,26 @@ int main(int argc, char** argv) {
         }
         else {
             XMLNode xInd = XMLNode::parseFile(Parameters::BEST_FILE.c_str(), "Individual");
+            if (xInd.isEmpty()) {
+                std::cout << "Can't run best individual because the file " << Parameters::BEST_FILE << " doesn't exist or isn't properly formated!" << std::endl;
+                std::cout << "Exiting..." << std::endl;
+                return 1;
+            }
             IndividualP ind = (IndividualP) new Individual(state);
             ind->read(xInd);
             Tree::Tree* tree = (Tree::Tree*)ind->getGenotype().get();
-            PriorityHeuristic heuristic(tree, evalOp.terminal_names_);
             Simulator sim;
+
+            PriorityHeuristic heuristic(tree, evalOp.terminal_names_);
+            std::cout << "Running best individual" << std::endl;
             double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
-            std::cout << "KPI score of custom heuristic: " << score << std::endl;
+            std::cout << "KPI score of the best individual: " << score << std::endl;
         }
     }
     else {
+        std::cout << "Running custom heuristic" << std::endl;
+        if (Parameters::SEED_SIM)
+            Simulator::seed_simulator();
         Simulator sim;
 
         CustomHeuristic heuristic = CustomHeuristic();

@@ -140,7 +140,8 @@ Move CustomHeuristic::calculate_move(Simulator& sim) {
     if (!w.arrival_stack.empty()) {
         int tgt = buffer_with_least_ready(w);
         if (tgt != -1){
-            std::cout << "[H1] Arrival block -> buffer " << tgt << " (least READY)\n";
+            if (Parameters::PRINT_STEPS)
+                std::cout << "[H1] Arrival block -> buffer " << tgt << " (least READY)\n";
             return Move{MoveType::ARRIVAL_TO_BUFFER, -1, tgt};
         }
     }   
@@ -150,7 +151,8 @@ Move CustomHeuristic::calculate_move(Simulator& sim) {
         int src = best_ready_on_top(w);
         if (src != -1){
             Container& blk = w.buffers[src].top();
-            std::cout << "[H2] Ready block #" << blk.id 
+            if (Parameters::PRINT_STEPS)
+                std::cout << "[H2] Ready block #" << blk.id
                       << " from buffer " << src << " -> HANDOVER (TUD=" << TUD(blk, w) << ")\n";
             return Move{MoveType::BUFFER_TO_HANDOVER, src, -1};
         }
@@ -161,11 +163,13 @@ Move CustomHeuristic::calculate_move(Simulator& sim) {
     if (covered_ready_block(w, covered)) {
         int tgt = buffer_without_ready_on_top(w, covered.buffer_id);
         if (tgt != -1){
-            std::cout << "[H3] Move top blocker from buffer " << covered.buffer_id << " -> buffer " << tgt << "\n";
+            if (Parameters::PRINT_STEPS)
+                std::cout << "[H3] Move top blocker from buffer " << covered.buffer_id << " -> buffer " << tgt << "\n";
             return Move{MoveType::BUFFER_TO_BUFFER, covered.buffer_id, tgt};
         }
     }
-    std:cout <<"--Not doing anything...\n";
+    if (Parameters::PRINT_STEPS)
+        std::cout <<"--Not doing anything...\n";
     return Move{MoveType::NONE, -1, -1};
 }
 
@@ -301,7 +305,6 @@ double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
 
     return result;
 }
-
 
 Move PriorityHeuristic::calculate_move(Simulator& sim) {
     World w = sim.getWorld();

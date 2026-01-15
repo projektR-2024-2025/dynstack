@@ -39,15 +39,29 @@ public:
 	inline static int MAX_WAIT_TIME = 15;
 	inline static int ARRIVAL_PROB = 10; // /100
 	inline static int HANDOVER_PROB = 20; // /100
-	inline static int SIMULATOR_SEED = 4444;
+	inline static bool SEED_SIM = true; // za CustomHeuristic seedaj sim prije pokretanja
+	inline static int SIMULATOR_SEED = 4444; // pocetni seed
 	// SimulatorEvalOp
 	inline static int SIM_STEPS = 50;
 
-	static void readParameters(const std::string& filename) {
-		if (!XMLNode::parseFile(filename.c_str()).getChildNode("ECF").isEmpty())
+	static void readParameters(int argc, char** argv) {
+		if (argc != 2) {
+			std::cout << "Parameters file not provided properly!" << std::endl;
+			std::cout << "Using default values!" << std::endl;
+			return;
+		}
+
+		XMLNode params = XMLNode::parseFile(argv[1]);
+		if (params.isEmpty()) {
+			std::cout << "Parameters file (" << argv[1] << ") doesn't exist or isn't properly formated!" << std::endl;
+			std::cout << "Using default values!" << std::endl;
+			return;
+		}
+
+		if (!params.getChildNode("ECF").isEmpty())
 			USING_ECF = true;
 
-		XMLNode conf = XMLNode::parseFile(filename.c_str()).getChildNode("Conf");
+		XMLNode conf = params.getChildNode("Conf");
 
 		if (!conf.isEmpty()) {
 			readParam(conf, RUN_BEST, "RunBest");
@@ -67,6 +81,7 @@ public:
 			readParam(conf, MAX_WAIT_TIME, "MaxWaitTime");
 			readParam(conf, ARRIVAL_PROB, "ArrivalProbability");
 			readParam(conf, HANDOVER_PROB, "HandoverProbability");
+			readParam(conf, SEED_SIM, "SeedSimulator");
 			readParam(conf, SIMULATOR_SEED, "SimulatorSeed");
 
 			readParam(conf, SIM_STEPS, "SimulationSteps");
