@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(dynstack_trainer
     trainer/src/main.cpp
-    trainer/src/Heuristic.cpp
+    trainer/src/CustomHeuristic.cpp
+    trainer/src/PriorityHeuristic.cpp
     trainer/src/SimulatorEvalOp.cpp
     trainer/simulator/Simulator.cpp
 )
