@@ -16,6 +16,7 @@ enum class MoveType {
     ARRIVAL_TO_BUFFER,
     BUFFER_TO_BUFFER,
     BUFFER_TO_HANDOVER
+    // ARRIVAL TO HANDOVER???
 };
 
 struct Move {
