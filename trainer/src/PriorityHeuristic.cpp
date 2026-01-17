@@ -136,7 +136,7 @@ double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
 
 Move PriorityHeuristic::calculate_move(Simulator& sim) {
     World w = sim.getWorld();
-    std::vector<Move> moves = possible_moves(sim);
+    std::vector<Move> moves = PriorityHeuristic::priority_possible_moves(sim);
 
     Move best_move{ MoveType::NONE, -1, -1 };
     double best_score = -std::numeric_limits<double>::infinity();
@@ -150,4 +150,37 @@ Move PriorityHeuristic::calculate_move(Simulator& sim) {
     }
     return best_move;
 
+}
+
+std::vector<Move> PriorityHeuristic::priority_possible_moves(Simulator& sim, int MetaAlgParam) {
+    if (MetaAlgParam == 1) {
+        // Pozovi prvog kandidata za Metalagoritam.
+        return PriorityHeuristic::meta_alg_1(sim);
+    }
+    else if (MetaAlgParam == 2) {
+        // Pozovi drugog kandidata za Metalgoritam.
+        return PriorityHeuristic::meta_alg_2(sim);
+    }
+    else if (MetaAlgParam == 3) {
+        // Poziv treceg kandidata za Metalgoritam.
+        return PriorityHeuristic::meta_alg_3(sim);
+    }
+    else {
+        return AbstractHeuristic::possible_moves(sim);
+    }
+}
+
+std::vector<Move> PriorityHeuristic::meta_alg_1(Simulator& sim) {
+    std::vector<Move> moves;
+    return moves;
+}
+
+std::vector<Move> PriorityHeuristic::meta_alg_2(Simulator& sim) {
+    std::vector<Move> moves;
+    return moves;
+}
+
+std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
+    std::vector<Move> moves;
+    return moves;
 }

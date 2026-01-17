@@ -77,7 +77,6 @@ public:
 class CustomHeuristic : public AbstractHeuristic {
 public:
     Move calculate_move(Simulator& sim) override;
-    
 private:
     long long TUD(const Container& c, World& w);
     bool has_free_space(World& w, int buffer_id);
@@ -95,12 +94,19 @@ class PriorityHeuristic : public AbstractHeuristic {
 public:
     PriorityHeuristic(Tree::Tree* tree, std::vector<std::string>& terminal_names);
     Move calculate_move(Simulator& sim) override;
+    static std::vector<Move> priority_possible_moves(Simulator& sim, int MetaAlgParam = 0);
 private:
     Tree::Tree* priority_tree;
     std::vector<std::string> terminals;
 
     double evaluate_move(Simulator& sim, Move& m);
     std::vector<double> extract_features(const World& before, const World& after, Move& m);
+
+    // Interne funkcije kandidata meta-algoritama.
+
+    static std::vector<Move> meta_alg_1(Simulator& sim);
+    static std::vector<Move> meta_alg_2(Simulator& sim);
+    static std::vector<Move> meta_alg_3(Simulator& sim);
 };
 
 #endif
