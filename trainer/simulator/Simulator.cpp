@@ -77,7 +77,7 @@ Simulator::Simulator() {
 }
 
 World Simulator::getWorld() {
-    return World{ time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, Parameters::MAX_BUFFER_SIZE, {KPI[0], KPI[1], KPI[2]} };
+    return World{ time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, Parameters::MAX_ARRIVAL_SIZE, Parameters::MAX_BUFFER_SIZE, {KPI[0], KPI[1], KPI[2]} };
 }
 
 // Manual move instructions
@@ -166,6 +166,41 @@ bool Simulator::move_buffer_to_handover(int buffer_id) {
         KPI[1]++;
     if (Parameters::PRINT_STEPS)
         std::cout << "Time " << time << ": Buffer " << buffer_id << " #" << c.id << " -> Handover" << std::endl;
+    return true;
+}
+
+bool Simulator::move_arrival_to_handover() {
+    if (!is_crane_avail) {
+        if (Parameters::PRINT_STEPS)
+            std::cout << "Crane is not available!" << std::endl;
+        return false;
+    }
+    if (arrival_stack.empty()) {
+        if (Parameters::PRINT_STEPS)
+            std::cout << "Arrival stack empty!" << std::endl;
+        return false;
+    }
+    if (!handover_stack.empty()) {
+        if (Parameters::PRINT_STEPS)
+            std::cout << "Handover full!" << std::endl;
+        return false;
+    }
+
+    Container c = arrival_stack.top();
+    if (!c.is_ready(time)) {
+        if (Parameters::PRINT_STEPS)
+            std::cout << "Container not ready!" << std::endl;
+        return false;
+    }
+
+    KPI[2]++;
+    is_crane_avail = false;
+    arrival_stack.pop();
+    handover_stack.push(c);
+    if (!c.is_overdue(time))
+        KPI[1]++;
+    if (Parameters::PRINT_STEPS)
+        std::cout << "Time " << time << ": #" << c.id << " -> Handover" << std::endl;
     return true;
 }
 

@@ -1,7 +1,6 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-#include <vector>
 #include <string>
 #include <ECF/ECF.h>
 

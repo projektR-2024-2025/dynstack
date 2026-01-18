@@ -20,6 +20,7 @@ struct World {
     int time;
     std::stack<Container> arrival_stack, handover_stack;
     std::stack<Container> buffers[3];
+    const int max_arrival_size;
     const int max_buffer_size;
     int KPI[3];
 };
@@ -48,6 +49,7 @@ public:
     bool move_arrival_to_buffer(int buffer_id);
     bool move_buffer_to_buffer(int from_buffer_id, int to_buffer_id);
     bool move_buffer_to_handover(int buffer_id);
+    bool move_arrival_to_handover();
     void print_status();
     void step();
 

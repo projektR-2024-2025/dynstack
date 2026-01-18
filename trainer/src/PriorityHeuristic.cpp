@@ -149,7 +149,43 @@ Move PriorityHeuristic::calculate_move(Simulator& sim) {
         }
     }
     return best_move;
+}
 
+std::vector<Move> PriorityHeuristic::possible_moves(Simulator& sim) {
+    std::vector<Move> moves;
+    World w = sim.getWorld();
+
+    if (!w.arrival_stack.empty()) {
+        for (int b = 0; b < 3; ++b) {
+            if (w.buffers[b].size() < w.max_buffer_size) {
+                moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
+            }
+        }
+    }
+    else {
+        moves.push_back(Move{ MoveType::NONE, -1, -1 });
+        // BUFFER -> HANDOVER
+        for (int i = 0; i < 3; ++i) {
+            if (!w.buffers[i].empty()) {
+
+                Container& top = w.buffers[i].top();
+                if (top.is_ready(w.time)) {
+                    moves.push_back(Move{ MoveType::BUFFER_TO_HANDOVER, i, -1 });
+                }
+            }
+        }
+        // BUFFER -> BUFFER
+        for (int i = 0; i < 3; ++i) {
+            if (!w.buffers[i].empty()) {
+                for (int j = 0; j < 3; ++j) {
+                    if (i != j && w.buffers[j].size() < w.max_buffer_size) {
+                        moves.push_back(Move{ MoveType::BUFFER_TO_BUFFER, i, j });
+                    }
+                }
+            }
+        }
+    }
+    return moves;
 }
 
 std::vector<Move> PriorityHeuristic::priority_possible_moves(Simulator& sim, int MetaAlgParam) {
@@ -166,17 +202,16 @@ std::vector<Move> PriorityHeuristic::priority_possible_moves(Simulator& sim, int
         return PriorityHeuristic::meta_alg_3(sim);
     }
     else {
-        return AbstractHeuristic::possible_moves(sim);
+        return PriorityHeuristic::possible_moves(sim);
     }
 }
-
 
 // Force arival if stack has ony one space left
 std::vector<Move> PriorityHeuristic::meta_alg_1(Simulator& sim) {
     std::vector<Move> moves;
     World w = sim.getWorld();
 
-    if (w.max_buffer_size - w.arrival_stack.size() <= 1) {
+    if (w.max_arrival_size - w.arrival_stack.size() <= 1) {
         for (int b = 0; b < 3; ++b) {
             if (w.buffers[b].size() < w.max_buffer_size) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
