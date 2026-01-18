@@ -1,4 +1,5 @@
 #include "Heuristic.h"
+#include "Parameters.h"
 
 // PRIORITY HEURISTIC
 
@@ -136,7 +137,7 @@ double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
 
 Move PriorityHeuristic::calculate_move(Simulator& sim) {
     World w = sim.getWorld();
-    std::vector<Move> moves = PriorityHeuristic::priority_possible_moves(sim, 0);
+    std::vector<Move> moves = PriorityHeuristic::priority_possible_moves(sim, Parameters::META_ALG);
 
     Move best_move{ MoveType::NONE, -1, -1 };
     double best_score = -std::numeric_limits<double>::infinity();
@@ -202,6 +203,7 @@ std::vector<Move> PriorityHeuristic::priority_possible_moves(Simulator& sim, int
         return PriorityHeuristic::meta_alg_3(sim);
     }
     else {
+        // Poziv za default heuristiku.
         return PriorityHeuristic::possible_moves(sim);
     }
 }
@@ -307,5 +309,64 @@ std::vector<Move> PriorityHeuristic::meta_alg_2(Simulator& sim) {
 
 std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
     std::vector<Move> moves;
+    World w = sim.getWorld();
+
+    if (w.arrival_stack.size() > 1) {
+        for (int b = 0; b < 3; ++b) {
+            if (w.buffers[b].size() < w.max_buffer_size) {
+                moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
+            }
+        }
+        
+        Container& arrival_top = w.arrival_stack.top();
+        if (w.handover_stack.empty() && arrival_top.is_ready(w.time)) {
+            moves.push_back(Move{ MoveType::ARRIVAL_TO_HANDOVER, -1, -1 });
+        }
+    }
+    else {
+
+        // Get possible handovers
+        if (!w.arrival_stack.empty()) {
+            Container& top = w.arrival_stack.top();
+            if (top.is_ready(w.time) && w.handover_stack.empty()) {
+                moves.push_back(Move{ MoveType::ARRIVAL_TO_HANDOVER, -1, -1 });
+            }
+        }
+        for (int b = 0; b < 3; ++b) {
+            if (!w.buffers[b].empty()) {
+                Container& top = w.buffers[b].top();
+                if (top.is_ready(w.time) && w.handover_stack.empty()) {
+                    moves.push_back(Move{ MoveType::BUFFER_TO_HANDOVER, b, -1 });
+                }
+            }
+        }
+        // If any ready container is on top and handover is ready -> return moves
+        if (!moves.empty()) return moves;
+
+
+        // Rest of the possible moves.
+        // SKIP move
+        moves.push_back(Move{ MoveType::NONE, -1, -1 });
+
+        // ARRIVAL -> BUFFER
+        if (w.arrival_stack.size() == 1) {
+            for (int b = 0; b < 3; ++b) {
+                if (w.buffers[b].size() < w.max_buffer_size) {
+                    moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
+                }
+            }
+        }
+
+        // BUFFER -> BUFFER
+        for (int i = 0; i < 3; ++i) {
+            if (!w.buffers[i].empty()) {
+                for (int j = 0; j < 3; ++j) {
+                    if (i != j && w.buffers[j].size() < w.max_buffer_size) {
+                        moves.push_back(Move{ MoveType::BUFFER_TO_BUFFER, i, j });
+                    }
+                }
+            }
+        }
+    }
     return moves;
 }

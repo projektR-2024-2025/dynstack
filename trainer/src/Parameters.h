@@ -42,6 +42,8 @@ public:
 	inline static int SIMULATOR_SEED = 4444; // pocetni seed
 	// SimulatorEvalOp
 	inline static int SIM_STEPS = 50;
+	// PriorityHeuristic
+	inline static int META_ALG = 0; // 0 default; 1,2,3 - kandidati
 
 	static void readParameters(int argc, char** argv) {
 		if (argc != 2) {
@@ -84,6 +86,8 @@ public:
 			readParam(conf, SIMULATOR_SEED, "SimulatorSeed");
 
 			readParam(conf, SIM_STEPS, "SimulationSteps");
+
+			readParam(conf, META_ALG, "MetaAlg");
 		}
 	}
 };

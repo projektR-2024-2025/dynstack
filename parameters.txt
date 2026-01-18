@@ -30,4 +30,5 @@
     <InitalizeBuffers>1</InitalizeBuffers>
     <SimulationSteps>1000</SimulationSteps>
     <SimulatorSeed>4444</SimulatorSeed>
+    <MetaAlg>0</MetaAlg>
 </Conf>
