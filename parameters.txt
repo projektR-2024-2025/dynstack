@@ -13,22 +13,29 @@
     </Registry>
 </ECF>
 <Conf>
-    <BestFile>best.txt</BestFile>
-    <RunBest>1</RunBest>
-    <KpiW1>0.5</KpiW1>
-    <KpiW2>-0.4</KpiW2>
-    <KpiW3>0.1</KpiW3>
-    <PrintSteps>0</PrintSteps>
-    <MaxArrivalSize>3</MaxArrivalSize>
-    <MaxBufferSize>12</MaxBufferSize>
-    <MinInitialBuffer>2</MinInitialBuffer>
-    <MaxInitialBuffer>4</MaxInitialBuffer>
-    <MinWaitTime>1</MinWaitTime>
-    <MaxWaitTime>15</MaxWaitTime>
-    <ArrivalProbability>10</ArrivalProbability>
-    <HandoverProbability>20</HandoverProbability>
-    <InitalizeBuffers>1</InitalizeBuffers>
-    <SimulationSteps>1000</SimulationSteps>
-    <SimulatorSeed>4444</SimulatorSeed>
-    <MetaAlg>0</MetaAlg>
+    <Main> <!-- Glavne opcije za rad programa -->
+        <BestFile>best.txt</BestFile>
+        <RunBest>1</RunBest> <!-- Izvrti jednu simulaciju koristeci jedinku iz BestFile -->
+        <SeedSimulator>1</SeedSimulator> <!-- Ako 1 koristi se SimulatorSeed, inace nasumican seed -->
+        <SimulatorSeed>4444</SimulatorSeed>
+        <SimulationSteps>500</SimulationSteps> <!-- Broj koraka simulacije -->
+        <PrintSteps>0</PrintSteps> <!-- Ispis svakog koraka u obliku teksta -->
+        <MetaAlg>0</MetaAlg> <!-- Odabir meta-algoritma 0/1/2/3 -->
+    </Main>
+    <KPI> <!-- KPI tezine -->
+        <KpiW1>0.5</KpiW1>
+        <KpiW2>-0.4</KpiW2>
+        <KpiW3>0.1</KpiW3>
+    </KPI>
+    <Simulator> <!-- Opcije koje mijenjaju rad simulatora -->
+        <MaxArrivalSize>3</MaxArrivalSize>
+        <MaxBufferSize>12</MaxBufferSize>
+        <MinInitialBuffer>2</MinInitialBuffer>
+        <MaxInitialBuffer>4</MaxInitialBuffer>
+        <MinWaitTime>1</MinWaitTime>
+        <MaxWaitTime>15</MaxWaitTime>
+        <ArrivalProbability>10</ArrivalProbability>
+        <HandoverProbability>20</HandoverProbability>
+        <InitalizeBuffers>1</InitalizeBuffers>
+    </Simulator>
 </Conf>

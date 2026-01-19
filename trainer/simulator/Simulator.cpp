@@ -11,14 +11,6 @@ bool Container::is_overdue(int current_time) const {
     return (current_time - arrival_time) > (overdue + wait);
 }
 
-int Container::until_ready(int current_time) const {
-    int t = current_time - arrival_time;
-    if (t < wait)
-        return wait - t;
-    else
-        return 0;
-}
-
 // funkcija provjerava je li kontejner overdue
 // ako je vraca koliko je vremena overdue, inace vraca 0
 int Container::get_overdue(int current_time) const {
@@ -221,6 +213,54 @@ void Simulator::print_status() {
     for (int i = 0; i < 3; ++i)
         std::cout << KPI[i] << " ";
     std::cout << std::endl;
+}
+
+void Simulator::print_state() {
+    World world = getWorld();
+    std::cout << "\033[2J\033[H" << std::endl;
+    // std::system(CLEAR_TERM);
+    for (int i = world.max_buffer_size; i >= 1; i--) {
+        std::cout << std::left;
+
+        if (i <= world.arrival_stack.size()) {
+            if (world.arrival_stack.top().is_ready(world.time))
+                std::cout << "\033[1;32m";
+            if (world.arrival_stack.top().is_overdue(world.time))
+                std::cout << "\033[1;31m";
+
+            std::cout << std::setw(15) << world.arrival_stack.top().id << "\033[0m";
+            world.arrival_stack.pop();
+        }
+        else
+            std::cout << std::left << std::string(15, ' ');
+
+        for (int j = 0; j < 3; j++) {
+            if (i <= world.buffers[j].size()) {
+                if (world.buffers[j].top().is_ready(world.time))
+                    std::cout << "\033[1;32m";
+                if (world.buffers[j].top().is_overdue(world.time))
+                    std::cout << "\033[1;31m";
+
+                std::cout << std::setw(15) << world.buffers[j].top().id << "\033[0m";
+                world.buffers[j].pop();
+            }
+            else
+                std::cout << std::string(15, ' ');
+        }
+
+        if (i <= world.handover_stack.size())
+            std::cout << std::setw(15) << world.handover_stack.top().id;
+        else
+            std::cout << std::string(15, ' ');
+
+        std::cout << std::endl;
+    }
+
+    std::cout << std::left << std::setw(15) << "Arrival" << std::setw(15) << "Buffer 1"
+        << std::setw(15) << "Buffer 2" << std::setw(15) << "Buffer 3";
+    if (world.handover_stack.empty())
+        std::cout << "\033[1;32m";
+    std::cout << std::setw(15) << "Handover" << "\033[0m" << std::endl;
 }
 
 void Simulator::step() {

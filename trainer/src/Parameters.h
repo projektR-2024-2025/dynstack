@@ -8,15 +8,19 @@ class Parameters
 {
 private:
 	template<typename T>
-	static void readParam(XMLNode& conf, T& var, const char *name) {
+	static void readParam(XMLNode& conf, T& var, const char *parent, const char *name) {
+		XMLNode par = conf.getChildNode(parent);
+		if (par.isEmpty())
+			return;
+
 		using UnderlyingType = typename std::remove_const<typename std::remove_reference<T>::type>::type;
 
 		if constexpr (std::is_same<UnderlyingType, std::string>::value)
-			var = !conf.getChildNode(name).isEmpty() ? conf.getChildNode(name).getText() : var;
+			var = !par.getChildNode(name).isEmpty() ? par.getChildNode(name).getText() : var;
 		else if constexpr (std::is_same<UnderlyingType, float>::value)
-			var = !conf.getChildNode(name).isEmpty() ? std::stof(conf.getChildNode(name).getText()) : var;
+			var = !par.getChildNode(name).isEmpty() ? std::stof(par.getChildNode(name).getText()) : var;
 		else
-			var = !conf.getChildNode(name).isEmpty() ? std::stoi(conf.getChildNode(name).getText()) : var;
+			var = !par.getChildNode(name).isEmpty() ? std::stoi(par.getChildNode(name).getText()) : var;
 	}
 public:
 	// main
@@ -65,29 +69,29 @@ public:
 		XMLNode conf = params.getChildNode("Conf");
 
 		if (!conf.isEmpty()) {
-			readParam(conf, RUN_BEST, "RunBest");
-			readParam(conf, BEST_FILE, "BestFile");
+			readParam(conf, RUN_BEST, "Main", "RunBest");
+			readParam(conf, BEST_FILE, "Main", "BestFile");
 
-			readParam(conf, KPI_W1, "KpiW1");
-			readParam(conf, KPI_W2, "KpiW2");
-			readParam(conf, KPI_W3, "KpiW3");
+			readParam(conf, KPI_W1, "KPI", "KpiW1");
+			readParam(conf, KPI_W2, "KPI", "KpiW2");
+			readParam(conf, KPI_W3, "KPI", "KpiW3");
 
-			readParam(conf, PRINT_STEPS, "PrintSteps");
-			readParam(conf, INITALIZE_BUFFERS, "InitalizeBuffers");
-			readParam(conf, MAX_ARRIVAL_SIZE, "MaxArrivalSize");
-			readParam(conf, MAX_BUFFER_SIZE, "MaxBufferSize");
-			readParam(conf, MIN_INIT_BUFFER, "MinInitialBuffer");
-			readParam(conf, MAX_INIT_BUFFER, "MaxInitialBuffer");
-			readParam(conf, MIN_WAIT_TIME, "MinWaitTime");
-			readParam(conf, MAX_WAIT_TIME, "MaxWaitTime");
-			readParam(conf, ARRIVAL_PROB, "ArrivalProbability");
-			readParam(conf, HANDOVER_PROB, "HandoverProbability");
-			readParam(conf, SEED_SIM, "SeedSimulator");
-			readParam(conf, SIMULATOR_SEED, "SimulatorSeed");
+			readParam(conf, PRINT_STEPS, "Main", "PrintSteps");
+			readParam(conf, INITALIZE_BUFFERS, "Simulator", "InitalizeBuffers");
+			readParam(conf, MAX_ARRIVAL_SIZE, "Simulator", "MaxArrivalSize");
+			readParam(conf, MAX_BUFFER_SIZE, "Simulator", "MaxBufferSize");
+			readParam(conf, MIN_INIT_BUFFER, "Simulator", "MinInitialBuffer");
+			readParam(conf, MAX_INIT_BUFFER, "Simulator", "MaxInitialBuffer");
+			readParam(conf, MIN_WAIT_TIME, "Simulator", "MinWaitTime");
+			readParam(conf, MAX_WAIT_TIME, "Simulator", "MaxWaitTime");
+			readParam(conf, ARRIVAL_PROB, "Simulator", "ArrivalProbability");
+			readParam(conf, HANDOVER_PROB, "Simulator", "HandoverProbability");
+			readParam(conf, SEED_SIM, "Main", "SeedSimulator");
+			readParam(conf, SIMULATOR_SEED, "Main", "SimulatorSeed");
 
-			readParam(conf, SIM_STEPS, "SimulationSteps");
+			readParam(conf, SIM_STEPS, "Main", "SimulationSteps");
 
-			readParam(conf, META_ALG, "MetaAlg");
+			readParam(conf, META_ALG, "Main", "MetaAlg");
 		}
 	}
 };

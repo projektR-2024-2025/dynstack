@@ -23,6 +23,22 @@ struct Move {
     MoveType type = MoveType::NONE;
     int from = -1;
     int to = -1;
+    void print_move() {
+        if (type == MoveType::ARRIVAL_TO_BUFFER)
+            std::cout << std::left << std::string(15 * (to + 1), '-') << ">" << std::endl;
+        else if (type == MoveType::BUFFER_TO_BUFFER) {
+            if (from < to)
+                std::cout << std::left << std::string(15 * (from + 1), ' ') << std::string(15 * (to - from), '-') << ">" << std::endl;
+            else
+                std::cout << std::left << std::string(15 * (to + 1), ' ') << "<" << std::string(15 * (from - to), '-') << std::endl;
+        }
+        else if (type == MoveType::BUFFER_TO_HANDOVER)
+            std::cout << std::left << std::string(15 * (from + 1), ' ') << std::string(15 * (3 - from), '-') << ">" << std::endl;
+        else if (type == MoveType::ARRIVAL_TO_HANDOVER)
+            std::cout << std::left << std::string(15 * 4, '-') << ">" << std::endl;
+        else
+            std::cout << std::endl;
+    }
 };
 
 class AbstractHeuristic {

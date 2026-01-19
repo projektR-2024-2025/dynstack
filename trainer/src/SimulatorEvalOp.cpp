@@ -30,6 +30,11 @@ FitnessP SimulatorEvalOp::evaluate(IndividualP individual)
 {
     FitnessP fitness(new FitnessMin);
 
+    if(Parameters::RUN_BEST) {
+        fitness->setValue(0);
+        return fitness;
+    }
+
     Tree::Tree* tree = (Tree::Tree*)individual->getGenotype().get();
 
 	PriorityHeuristic heuristic(tree, this->terminal_names_);

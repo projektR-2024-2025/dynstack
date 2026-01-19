@@ -4,15 +4,21 @@
 #include <stack>
 #include <random>
 #include <iostream>
+#include <iomanip>
 
 #include "Parameters.h"
+
+#if defined(_WIN32) || defined(_WIN64)
+    #define CLEAR_TERM "cls"  // Windows
+#else
+    #define CLEAR_TERM "clear" // Linux/macOS
+#endif
 
 struct Container {
     int id, wait, overdue, arrival_time;
     Container(int id, int w, int o, int t);
     bool is_ready(int current_time) const;
     bool is_overdue(int current_time) const;
-    int until_ready(int current_time) const;
     int get_overdue(int current_time) const;
 };
 
@@ -51,6 +57,7 @@ public:
     bool move_buffer_to_handover(int buffer_id);
     bool move_arrival_to_handover();
     void print_status();
+    void print_state();
     void step();
 
     static void seed_simulator();
