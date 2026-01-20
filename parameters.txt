@@ -32,10 +32,12 @@
         <MaxBufferSize>12</MaxBufferSize>
         <MinInitialBuffer>3</MinInitialBuffer>
         <MaxInitialBuffer>5</MaxInitialBuffer>
-        <MinWaitTime>10</MinWaitTime>
-        <MaxWaitTime>25</MaxWaitTime>
-        <ArrivalProbability>12</ArrivalProbability>
-        <HandoverProbability>25</HandoverProbability>
+        <MinDueTime>70</MinDueTime>
+        <MaxDueTime>90</MaxDueTime>
+        <MinWaitFactor>0.1</MinWaitFactor>
+        <MaxWaitFactor>0.3</MaxWaitFactor>
+        <ArrivalProbability>15</ArrivalProbability>
+        <HandoverProbability>22</HandoverProbability>
         <InitalizeBuffers>1</InitalizeBuffers>
     </Simulator>
 </Conf>

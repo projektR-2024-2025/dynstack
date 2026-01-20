@@ -16,10 +16,16 @@
 
 struct Container {
     int id, wait, overdue, arrival_time;
-    Container(int id, int w, int o, int t);
-    bool is_ready(int current_time) const;
-    bool is_overdue(int current_time) const;
-    int get_overdue(int current_time) const;
+    Container(int id, int w, int o, int t) : id(id), wait(w), overdue(o), arrival_time(t) {}
+    bool is_ready(int current_time) const {
+        return (current_time - arrival_time) > wait;
+    }
+    bool is_overdue(int current_time) const {
+        return (current_time - arrival_time) > (overdue + wait);
+    }
+    int get_overdue(int current_time) const {
+        return (current_time - arrival_time) - (overdue + wait);
+    }
 };
 
 struct KPI_t {

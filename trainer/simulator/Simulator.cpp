@@ -1,34 +1,13 @@
 #include "Simulator.h"
 
-Container::Container(int id, int w, int o, int t) : id(id), wait(w), overdue(o), arrival_time(t) {}
-
-// funkcija koja nam provjerava je li kontejner spreman za premjestanje
-bool Container::is_ready(int current_time) const {
-    return (current_time - arrival_time) > wait;
-}
-
-bool Container::is_overdue(int current_time) const {
-    return (current_time - arrival_time) > (overdue + wait);
-}
-
-// funkcija provjerava je li kontejner overdue
-// ako je vraca koliko je vremena overdue, inace vraca 0
-int Container::get_overdue(int current_time) const {
-    int t = current_time - arrival_time;
-    if (t > (overdue + wait)) {
-        return t - (overdue + wait);
-    }
-    else {
-        return 0;
-    }
-}
-
 void Simulator::initalize_buffers() {
     for (int i = 0; i < 3; ++i) {
         std::uniform_int_distribution<> buff_dist(Parameters::MIN_INIT_BUFFER, Parameters::MAX_INIT_BUFFER);
         for (int j = 0; j < buff_dist(rng); j++) {
-            std::uniform_int_distribution<> wait_dist(Parameters::MIN_WAIT_TIME, Parameters::MAX_WAIT_TIME);
-            Container c(next_id++, wait_dist(rng), wait_dist(rng), time);
+            std::uniform_int_distribution<> due_dist(Parameters::MIN_DUE_TIME, Parameters::MAX_DUE_TIME);
+            int dueTime = due_dist(rng);
+            std::uniform_real_distribution<> wait_dis(dueTime * Parameters::MIN_WAIT_FAC, dueTime * Parameters::MAX_WAIT_FAC);
+            Container c(next_id++, static_cast<int>(wait_dis(rng)), dueTime, time);
             buffers[i].push(c);
         }
     }
@@ -41,8 +20,10 @@ void Simulator::generate_arrival() {
             KPI.blocked_arrival++;
             return;
         }
-        std::uniform_int_distribution<> wait_dist(Parameters::MIN_WAIT_TIME, Parameters::MAX_WAIT_TIME);
-        Container c(next_id++, wait_dist(rng), wait_dist(rng), time); // na temelju iste distribucije se generira i wait i overdue
+        std::uniform_int_distribution<> due_dist(Parameters::MIN_DUE_TIME, Parameters::MAX_DUE_TIME);
+        int dueTime = due_dist(rng);
+        std::uniform_real_distribution<> wait_dis(dueTime * Parameters::MIN_WAIT_FAC, dueTime * Parameters::MAX_WAIT_FAC);
+        Container c(next_id++, static_cast<int>(wait_dis(rng)), dueTime, time);
         arrival_stack.push(c);
         if (Parameters::PRINT_STEPS)
             std::cout << "Time " << time << ": Arrival #" << c.id << " (w=" << c.wait << ")" << std::endl;

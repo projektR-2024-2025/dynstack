@@ -38,10 +38,12 @@ public:
 	inline static int MAX_BUFFER_SIZE = 12;
 	inline static int MIN_INIT_BUFFER = 3;
 	inline static int MAX_INIT_BUFFER = 5;
-	inline static int MIN_WAIT_TIME = 10;
-	inline static int MAX_WAIT_TIME = 25;
-	inline static int ARRIVAL_PROB = 12; // /100
-	inline static int HANDOVER_PROB = 25; // /100
+	inline static int MIN_DUE_TIME = 70;
+	inline static int MAX_DUE_TIME = 90;
+	inline static float MIN_WAIT_FAC = 0.1;
+	inline static float MAX_WAIT_FAC = 0.3;
+	inline static int ARRIVAL_PROB = 15; // /100
+	inline static int HANDOVER_PROB = 22; // /100
 	inline static bool SEED_SIM = true; // za CustomHeuristic seedaj sim prije pokretanja
 	inline static int SIMULATOR_SEED = 4444; // pocetni seed
 	// SimulatorEvalOp
@@ -82,8 +84,10 @@ public:
 			readParam(conf, MAX_BUFFER_SIZE, "Simulator", "MaxBufferSize");
 			readParam(conf, MIN_INIT_BUFFER, "Simulator", "MinInitialBuffer");
 			readParam(conf, MAX_INIT_BUFFER, "Simulator", "MaxInitialBuffer");
-			readParam(conf, MIN_WAIT_TIME, "Simulator", "MinWaitTime");
-			readParam(conf, MAX_WAIT_TIME, "Simulator", "MaxWaitTime");
+			readParam(conf, MIN_DUE_TIME, "Simulator", "MinDueTime");
+			readParam(conf, MAX_DUE_TIME, "Simulator", "MaxDueTime");
+			readParam(conf, MIN_WAIT_FAC, "Simulator", "MinWaitFactor");
+			readParam(conf, MAX_WAIT_FAC, "Simulator", "MaxWaitFactor");
 			readParam(conf, ARRIVAL_PROB, "Simulator", "ArrivalProbability");
 			readParam(conf, HANDOVER_PROB, "Simulator", "HandoverProbability");
 			readParam(conf, SEED_SIM, "Main", "SeedSimulator");
