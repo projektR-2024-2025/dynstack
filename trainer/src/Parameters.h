@@ -35,13 +35,13 @@ public:
 	inline static bool PRINT_STEPS = false;
 	inline static bool INITALIZE_BUFFERS = true;
 	inline static int MAX_ARRIVAL_SIZE = 3;
-	inline static int MAX_BUFFER_SIZE = 8;
-	inline static int MIN_INIT_BUFFER = 2;
-	inline static int MAX_INIT_BUFFER = 4;
-	inline static int MIN_WAIT_TIME = 1;
-	inline static int MAX_WAIT_TIME = 15;
-	inline static int ARRIVAL_PROB = 10; // /100
-	inline static int HANDOVER_PROB = 20; // /100
+	inline static int MAX_BUFFER_SIZE = 12;
+	inline static int MIN_INIT_BUFFER = 3;
+	inline static int MAX_INIT_BUFFER = 5;
+	inline static int MIN_WAIT_TIME = 10;
+	inline static int MAX_WAIT_TIME = 25;
+	inline static int ARRIVAL_PROB = 12; // /100
+	inline static int HANDOVER_PROB = 25; // /100
 	inline static bool SEED_SIM = true; // za CustomHeuristic seedaj sim prije pokretanja
 	inline static int SIMULATOR_SEED = 4444; // pocetni seed
 	// SimulatorEvalOp

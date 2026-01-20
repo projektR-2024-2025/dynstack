@@ -38,7 +38,7 @@ void Simulator::generate_arrival() {
     std::uniform_int_distribution<> arrival_dist(0, 100);
     if (arrival_dist(rng) < Parameters::ARRIVAL_PROB) {
         if (arrival_stack.size() >= Parameters::MAX_ARRIVAL_SIZE) {  // u slucaju da je vec nesto na arrival_stacku
-            KPI[0]++;
+            KPI.blocked_arrival++;
             return;
         }
         std::uniform_int_distribution<> wait_dist(Parameters::MIN_WAIT_TIME, Parameters::MAX_WAIT_TIME);
@@ -54,12 +54,42 @@ bool Simulator::process_handover_top() {
     std::uniform_int_distribution<> process_dist(0, 100);
     if (process_dist(rng) < Parameters::HANDOVER_PROB) {
         Container c = handover_stack.top(); handover_stack.pop();
-        processed_count++;
         if (Parameters::PRINT_STEPS)
             std::cout << "Time " << time << ": PROCESSED #" << c.id << " (waited " << (time - c.arrival_time) << " steps)" << std::endl;
         return true;
     }
     return false;
+}
+
+void Simulator::calculate_KPI() {
+    World world = getWorld();
+
+    int total_blocks = 0;
+    KPI.blocks_on_time = delivered_on_time;
+    while (!world.arrival_stack.empty()) {
+        if(!world.arrival_stack.top().is_overdue(time))
+            KPI.blocks_on_time++;
+        world.arrival_stack.pop();
+        total_blocks++;
+    }
+
+    KPI.buffer_util = 0;
+    for (int i = 0; i < 3; i++) {
+        KPI.buffer_util += static_cast<double>(world.buffers[i].size()) / Parameters::MAX_BUFFER_SIZE;
+        while (!world.buffers[i].empty()) {
+            if(!world.buffers[i].top().is_overdue(time))
+                KPI.blocks_on_time++;
+            world.buffers[i].pop();
+            total_blocks++;
+        }
+    }
+    KPI.buffer_util /= 3;
+
+    if (leadtime)
+        KPI.leadtime -= static_cast<double>(KPI.leadtime - leadtime) / KPI.delivered_blocks;
+    leadtime = 0;
+    KPI.service_level = static_cast<double>(KPI.blocks_on_time) / (total_blocks + KPI.delivered_blocks);
+    KPI.handover_util -= static_cast<double>(KPI.handover_util - !handover_stack.empty()) / time;
 }
 
 Simulator::Simulator() {
@@ -69,7 +99,7 @@ Simulator::Simulator() {
 }
 
 World Simulator::getWorld() {
-    return World{ time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, Parameters::MAX_ARRIVAL_SIZE, Parameters::MAX_BUFFER_SIZE, {KPI[0], KPI[1], KPI[2]} };
+    return World{ time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, Parameters::MAX_ARRIVAL_SIZE, Parameters::MAX_BUFFER_SIZE, KPI };
 }
 
 // Manual move instructions
@@ -90,8 +120,9 @@ bool Simulator::move_arrival_to_buffer(int buffer_id) {
         return false;
     }
 
-    KPI[2]++;
+    KPI.crane_manipulations++;
     is_crane_avail = false;
+    made_move = true;
     Container c = arrival_stack.top(); arrival_stack.pop();
     buffers[buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
@@ -116,9 +147,10 @@ bool Simulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id) {
         return false;
     }
 
-    KPI[2]++;
+    KPI.crane_manipulations++;
     Container c = buffers[from_buffer_id].top();
     is_crane_avail = false;
+    made_move = true;
     buffers[from_buffer_id].pop();
     buffers[to_buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
@@ -150,12 +182,15 @@ bool Simulator::move_buffer_to_handover(int buffer_id) {
         return false;
     }
 
-    KPI[2]++;
+    KPI.crane_manipulations++;
+    KPI.delivered_blocks++;
+    leadtime = time - c.arrival_time;
     is_crane_avail = false;
+    made_move = true;
     buffers[buffer_id].pop();
     handover_stack.push(c);
     if (!c.is_overdue(time))
-        KPI[1]++;
+        delivered_on_time++;
     if (Parameters::PRINT_STEPS)
         std::cout << "Time " << time << ": Buffer " << buffer_id << " #" << c.id << " -> Handover" << std::endl;
     return true;
@@ -185,19 +220,22 @@ bool Simulator::move_arrival_to_handover() {
         return false;
     }
 
-    KPI[2]++;
+    KPI.crane_manipulations++;
+    KPI.delivered_blocks++;
+    leadtime = time - c.arrival_time;
     is_crane_avail = false;
+    made_move = true;
     arrival_stack.pop();
     handover_stack.push(c);
     if (!c.is_overdue(time))
-        KPI[1]++;
+        delivered_on_time++;
     if (Parameters::PRINT_STEPS)
         std::cout << "Time " << time << ": #" << c.id << " -> Handover" << std::endl;
     return true;
 }
 
 void Simulator::print_status() {
-    std::cout << "\n--- Status at time " << time << " (Processed: " << processed_count << ") ---\n";
+    std::cout << "\n--- Status at time " << time << " (Delivered: " << KPI.delivered_blocks << ") ---\n";
     std::cout << "Arrival: " << arrival_stack.size() << " | ";
     std::cout << "Buffers: [" << buffers[0].size() << "," << buffers[1].size() << "," << buffers[2].size() << "] | ";
     std::cout << "Handover: " << handover_stack.size() << std::endl;
@@ -208,11 +246,8 @@ void Simulator::print_status() {
         if (!buffers[i].empty()) std::cout << "B" << i << ": #" << buffers[i].top().id << " ";
     }
     if (!handover_stack.empty()) std::cout << "Handover: #" << handover_stack.top().id;
-    std::cout << std::endl << "KPI values:";
-
-    for (int i = 0; i < 3; ++i)
-        std::cout << KPI[i] << " ";
-    std::cout << std::endl;
+    std::cout << std::endl << "KPI values: ";
+    KPI.print();
 }
 
 void Simulator::print_state() {
@@ -267,7 +302,9 @@ void Simulator::step() {
     generate_arrival();
     process_handover_top();
     ++time;
-    is_crane_avail = true;
+    is_crane_avail = made_move ? false : true;
+    made_move = false;
+    calculate_KPI();
 }
 
 void Simulator::seed_simulator() {

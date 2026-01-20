@@ -15,7 +15,7 @@
 <Conf>
     <Main> <!-- Glavne opcije za rad programa -->
         <BestFile>best.txt</BestFile>
-        <RunBest>1</RunBest> <!-- Izvrti jednu simulaciju koristeci jedinku iz BestFile -->
+        <RunBest>0</RunBest> <!-- Izvrti jednu simulaciju koristeci jedinku iz BestFile -->
         <SeedSimulator>1</SeedSimulator> <!-- Ako 1 koristi se SimulatorSeed, inace nasumican seed -->
         <SimulatorSeed>4444</SimulatorSeed>
         <SimulationSteps>500</SimulationSteps> <!-- Broj koraka simulacije -->
@@ -30,12 +30,12 @@
     <Simulator> <!-- Opcije koje mijenjaju rad simulatora -->
         <MaxArrivalSize>3</MaxArrivalSize>
         <MaxBufferSize>12</MaxBufferSize>
-        <MinInitialBuffer>2</MinInitialBuffer>
-        <MaxInitialBuffer>4</MaxInitialBuffer>
-        <MinWaitTime>1</MinWaitTime>
-        <MaxWaitTime>15</MaxWaitTime>
-        <ArrivalProbability>10</ArrivalProbability>
-        <HandoverProbability>20</HandoverProbability>
+        <MinInitialBuffer>3</MinInitialBuffer>
+        <MaxInitialBuffer>5</MaxInitialBuffer>
+        <MinWaitTime>10</MinWaitTime>
+        <MaxWaitTime>25</MaxWaitTime>
+        <ArrivalProbability>12</ArrivalProbability>
+        <HandoverProbability>25</HandoverProbability>
         <InitalizeBuffers>1</InitalizeBuffers>
     </Simulator>
 </Conf>

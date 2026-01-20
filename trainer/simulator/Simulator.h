@@ -22,13 +22,31 @@ struct Container {
     int get_overdue(int current_time) const;
 };
 
+struct KPI_t {
+    int blocked_arrival;
+    int blocks_on_time;
+    int crane_manipulations;
+    int delivered_blocks;
+    double leadtime;
+    double service_level;
+    double buffer_util;
+    double handover_util;
+
+    void print() {
+        std::cout << "Blocked arrival: " << blocked_arrival << ", Blocks on time: " << blocks_on_time
+            << ", Crane manipulations: " << crane_manipulations << ", Delivered blocks: " << delivered_blocks
+            << ", Leadtime: " << leadtime << ", Service level: " << service_level << ", Buffer util: " << buffer_util
+            << ", Handover util: " << handover_util << std::endl;
+    }
+};
+
 struct World {
     int time;
     std::stack<Container> arrival_stack, handover_stack;
     std::stack<Container> buffers[3];
     const int max_arrival_size;
     const int max_buffer_size;
-    int KPI[3];
+    KPI_t KPI;
 };
 
 class Simulator {
@@ -39,13 +57,16 @@ private:
     std::mt19937 rng;
     inline static double seed = Parameters::SIMULATOR_SEED;
     int next_id = 1;
-    int processed_count = 0;
-    int KPI[3] = {0, 0, 0};
+    KPI_t KPI = {0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
+    int delivered_on_time = 0;
+    int leadtime = 0;
     bool is_crane_avail = true;
+    bool made_move = false;
 
     void initalize_buffers();
     void generate_arrival();
     bool process_handover_top();
+    void calculate_KPI();
 
 public:
     Simulator();
