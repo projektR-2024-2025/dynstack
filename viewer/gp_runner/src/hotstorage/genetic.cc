@@ -11,7 +11,8 @@ namespace DynStacking {
             NONE,
             ARRIVAL_TO_BUFFER,
             BUFFER_TO_HANDOVER,
-            BUFFER_TO_BUFFER
+            BUFFER_TO_BUFFER,
+            ARRIVAL_TO_HANDOVER
         };
 
         struct Move {
@@ -66,6 +67,18 @@ namespace DynStacking {
                 const auto& block = src_it->bottomtotop(src_it->bottomtotop_size() - 1);
                 *dst_it->add_bottomtotop() = block;
                 src_it->mutable_bottomtotop()->RemoveLast();
+                return true;
+            }
+            case MoveType::ARRIVAL_TO_HANDOVER: {
+                if (w.production().bottomtotop_size() == 0) {
+                    return false;
+                }
+                const auto& block = w.production().bottomtotop(w.production().bottomtotop_size() - 1);
+                if (!block.ready()) {
+                    return false;
+                }
+                *w.mutable_handover()->mutable_block() = block;
+                w.mutable_production()->mutable_bottomtotop()->RemoveLast();
                 return true;
             }
             case MoveType::NONE: default:

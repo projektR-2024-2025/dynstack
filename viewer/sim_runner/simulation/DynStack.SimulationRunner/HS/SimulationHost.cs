@@ -84,33 +84,31 @@ namespace DynStack.SimulationRunner.HS {
       return !aborted;
     }
 
-    public static Settings DefaultSettings {
-      get => new Settings() {
-        BufferCount = 3,
-        ProductionMaxHeight = 3,
-        BufferMaxHeight = 12,
-        CheckInterval = TimeSpan.FromSeconds(.5),
-        CraneMoveTimeMean = TimeSpan.FromSeconds(1.5),
-        CraneMoveTimeStd = TimeSpan.FromSeconds(.25),
-        HoistMoveTimeMean = TimeSpan.FromSeconds(.25),
-        HoistMoveTimeStd = TimeSpan.FromSeconds(.05),
-        DueTimeMin = TimeSpan.FromSeconds(60),
-        InitialNumberOfBlocks = 12,
-        Seed = 42,
-        ArrivalTimeMean = TimeSpan.FromSeconds(8),
-        ArrivalTimeStd = TimeSpan.FromSeconds(1),
-        DueTimeStd = TimeSpan.FromSeconds(10),
-        DueTimeMean = TimeSpan.FromSeconds(200),
-        ReadyFactorMin = 0.1,
-        ReadyFactorMax = 0.2,
+    public static Settings DefaultSettings { get; set; } = new Settings() {
+      BufferCount = 3,
+      ProductionMaxHeight = 3,
+      BufferMaxHeight = 12,
+      CheckInterval = TimeSpan.FromSeconds(.5),
+      CraneMoveTimeMean = TimeSpan.FromSeconds(1.5),
+      CraneMoveTimeStd = TimeSpan.FromSeconds(.25),
+      HoistMoveTimeMean = TimeSpan.FromSeconds(.25),
+      HoistMoveTimeStd = TimeSpan.FromSeconds(.05),
+      DueTimeMin = TimeSpan.FromSeconds(60),
+      InitialNumberOfBlocks = 12,
+      Seed = 42,
+      ArrivalTimeMean = TimeSpan.FromSeconds(8),
+      ArrivalTimeStd = TimeSpan.FromSeconds(1),
+      DueTimeStd = TimeSpan.FromSeconds(10),
+      DueTimeMean = TimeSpan.FromSeconds(200),
+      ReadyFactorMin = 0.1,
+      ReadyFactorMax = 0.2,
 
-        MinClearTime = TimeSpan.FromSeconds(0),
-        MaxClearTime = TimeSpan.FromSeconds(1),
-        HandoverTimeMean = TimeSpan.FromSeconds(4),
-        HandoverTimeStd = TimeSpan.FromSeconds(1),
+      MinClearTime = TimeSpan.FromSeconds(0),
+      MaxClearTime = TimeSpan.FromSeconds(1),
+      HandoverTimeMean = TimeSpan.FromSeconds(4),
+      HandoverTimeStd = TimeSpan.FromSeconds(1),
 
-        SimulationDuration = TimeSpan.FromHours(1)
-      };
-    }
+      SimulationDuration = TimeSpan.FromHours(1)
+    };
   }
 }
