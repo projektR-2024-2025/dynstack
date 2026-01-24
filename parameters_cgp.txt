@@ -23,6 +23,7 @@
         <SimulationSteps>500</SimulationSteps> <!-- Broj koraka simulacije -->
         <PrintSteps>0</PrintSteps> <!-- Ispis svakog koraka u obliku teksta -->
         <MetaAlg>0</MetaAlg> <!-- Odabir meta-algoritma 0/1/2/3 -->
+		<Model>1</Model>
     </Main>
     <KPI> <!-- KPI tezine -->
         <KpiW1>0.5</KpiW1>
