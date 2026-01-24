@@ -2,6 +2,7 @@
 #define HEURISTIC_H
 
 #include "Simulator.h"
+#include "Model.h"
 
 #include <vector>
 #include <string>
@@ -74,13 +75,12 @@ private:
 
 class PriorityHeuristic : public AbstractHeuristic {
 public:
-    PriorityHeuristic(Tree::Tree* tree, std::vector<std::string>& terminal_names);
+    PriorityHeuristic(Model* model);
     Move calculate_move(Simulator& sim) override;
     static std::vector<Move> possible_moves(Simulator& sim);
     static std::vector<Move> priority_possible_moves(Simulator& sim, int MetaAlgParam = 0);
 private:
-    Tree::Tree* priority_tree;
-    std::vector<std::string> terminals;
+    Model* model_;
 
     double evaluate_move(Simulator& sim, Move& m);
     std::vector<double> extract_features(const World& before, const World& after, Move& m);

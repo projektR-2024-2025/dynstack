@@ -1,5 +1,6 @@
 #include <ECF/ECF.h>
 #include "SimulatorEvalOp.h"
+#include "SimulatorEvalCGPOp.h"
 #include "WriteBest.h"
 #include "Parameters.h"
 #include "SeedSimulator.h"
@@ -13,9 +14,21 @@ int main(int argc, char** argv) {
     if (Parameters::USING_ECF) {
         StateP state(new State);
 
-        SimulatorEvalOp evalOp;
+        SimulatorEvalOp gpEvalOp;
+        SimulatorEvalCGPOp cgpEvalOp;
 
-        state->setEvalOp(&evalOp);
+        // za GP
+        if (Parameters::MODEL == 0) {
+            std::cout << "Using GP genotype!" << std::endl;
+            state->setEvalOp(&gpEvalOp);
+        }
+        // za CGP
+        else {
+            state->setEvalOp(&cgpEvalOp);
+        }
+
+        //SimulatorEvalOp evalOp;
+        //state->setEvalOp(&evalOp);
         state->addOperator((OperatorP) new WriteBest);
         state->addOperator((OperatorP) new SeedSimulator);
         state->initialize(argc, argv);
@@ -38,13 +51,28 @@ int main(int argc, char** argv) {
             }
             IndividualP ind = (IndividualP) new Individual(state);
             ind->read(xInd);
-            Tree::Tree* tree = (Tree::Tree*)ind->getGenotype().get();
-            Simulator sim;
+            //Tree::Tree* tree = (Tree::Tree*)ind->getGenotype().get();
+            //GenotypeP genotype = (GenotypeP)ind->getGenotype().get();
+            //CGPModel* model = new CGPModel(genotype);
 
-            PriorityHeuristic heuristic(tree, evalOp.terminal_names_);
-            std::cout << "Running best individual" << std::endl;
-            double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
-            std::cout << "KPI score of the best individual: " << score << std::endl;
+            Simulator sim;
+            GenotypeP genotype = (GenotypeP)ind->getGenotype().get();
+            if (Parameters::MODEL == 0) { // GP
+                // TODO: Razmisliti moze li se bolje bez ponovne inicijalizacije operatora
+                TreeModel* model = new TreeModel(genotype, gpEvalOp.terminal_names_);
+                PriorityHeuristic heuristic(model);
+                std::cout << "Running best individual" << std::endl;
+                double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
+                std::cout << "KPI score of the best individual: " << score << std::endl;
+            }
+            if (Parameters::MODEL == 1) { // CGP
+                std::cout << "Using CGP genotype!" << std::endl;
+                CGPModel* model = new CGPModel(genotype);
+                PriorityHeuristic heuristic(model);
+                std::cout << "Running best individual" << std::endl;
+                double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
+                std::cout << "KPI score of the best individual: " << score << std::endl;
+            }
         }
     }
     else {

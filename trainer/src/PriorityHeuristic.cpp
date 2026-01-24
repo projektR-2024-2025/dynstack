@@ -3,10 +3,7 @@
 
 // PRIORITY HEURISTIC
 
-PriorityHeuristic::PriorityHeuristic(Tree::Tree* tree, std::vector<std::string>& terminal_names)
-    : priority_tree(tree),
-    terminals(terminal_names) {
-}
+PriorityHeuristic::PriorityHeuristic(Model* model) : model_(model) {}
 
 // TODO
 std::vector<double> PriorityHeuristic::extract_features(const World& before, const World& after, Move& m) {
@@ -125,12 +122,13 @@ double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
     World after = sim_copy.getWorld();
     auto features = extract_features(before, after, m);
 
-    for (size_t i = 0; i < terminals.size(); ++i) {
-        priority_tree->setTerminalValue(terminals[i], (void*)&features[i]);
-    }
+    //for (size_t i = 0; i < terminals.size(); ++i) {
+        //priority_tree->setterminalvalue(terminals[i], (void*)&features[i]);
+    //}
 
     double result;
-    priority_tree->execute(&result);
+    //priority_tree->execute(&result);
+	model_->execute(result, features);
 
     return result;
 }

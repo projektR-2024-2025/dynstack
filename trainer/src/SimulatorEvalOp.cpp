@@ -1,4 +1,5 @@
 #include "SimulatorEvalOp.h"
+#include "Model.h"
 
 // s ovom funkcijom dodjeljujem vrijednost clanskoj varijable klase SimulatorEvalOp
 // (built-in ECF-ova funkcija)
@@ -7,7 +8,7 @@ bool SimulatorEvalOp::initialize(StateP state)
     if (!state->getGenotypes()[0]->isParameterDefined(state, "terminalset")) // ovo sam ostavio za provjeru je li definirano
         return false;
 
-	voidP sptr = state->getGenotypes()[0]->getParameterValue(state, "terminalset"); // ovo ga fetcha
+    voidP sptr = state->getGenotypes()[0]->getParameterValue(state, "terminalset"); // ovo ga fetcha
 
     // ovo nadalje je parsiranje
     std::string terminals = *((std::string*)sptr.get());
@@ -23,26 +24,28 @@ bool SimulatorEvalOp::initialize(StateP state)
     if (Parameters::SEED_SIM)
         Simulator::seed_simulator();
 
-	return true;
+    return true;
 }
 
 FitnessP SimulatorEvalOp::evaluate(IndividualP individual)
 {
     FitnessP fitness(new FitnessMin);
 
-    if(Parameters::RUN_BEST) {
+    if (Parameters::RUN_BEST) {
         fitness->setValue(0);
         return fitness;
     }
 
-    Tree::Tree* tree = (Tree::Tree*)individual->getGenotype().get();
+    //Tree::Tree* tree = (Tree::Tree*)individual->getGenotype().get();
+    GenotypeP genotype = individual->getGenotype();
+    TreeModel* model = new TreeModel(genotype, this->terminal_names_);
 
-	PriorityHeuristic heuristic(tree, this->terminal_names_);
+    PriorityHeuristic heuristic(model);
 
-	Simulator sim;
+    Simulator sim;
 
-	double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
-	fitness->setValue(score);
+    double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
+    fitness->setValue(score);
 
     return fitness;
 }

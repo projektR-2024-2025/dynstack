@@ -27,6 +27,7 @@ public:
 	inline static std::string BEST_FILE = "best.txt";
 	inline static bool USING_ECF = false;
 	inline static bool RUN_BEST = false;
+	inline static int MODEL = 1; // 0 - GP; 1 - CGP
 	// Runner
 	inline static float KPI_W1 = 0.5;
 	inline static float KPI_W2 = -0.4;
@@ -73,6 +74,7 @@ public:
 		if (!conf.isEmpty()) {
 			readParam(conf, RUN_BEST, "Main", "RunBest");
 			readParam(conf, BEST_FILE, "Main", "BestFile");
+			readParam(conf, MODEL, "Main", "Model");
 
 			readParam(conf, KPI_W1, "KPI", "KpiW1");
 			readParam(conf, KPI_W2, "KPI", "KpiW2");
