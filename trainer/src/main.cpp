@@ -19,7 +19,6 @@ int main(int argc, char** argv) {
 
         // za GP
         if (Parameters::MODEL == 0) {
-            std::cout << "Using GP genotype!" << std::endl;
             state->setEvalOp(&gpEvalOp);
         }
         // za CGP
