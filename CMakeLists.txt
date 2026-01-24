@@ -10,6 +10,8 @@ add_executable(dynstack_trainer
     trainer/src/PriorityHeuristic.cpp
     trainer/src/SimulatorEvalOp.cpp
     trainer/simulator/Simulator.cpp
+    trainer/src/Model.cpp
+    trainer/src/SimulatorEvalCGPOp.cpp
 )
 
 target_include_directories(dynstack_trainer PRIVATE
