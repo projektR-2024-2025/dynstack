@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
             state->setEvalOp(&gpEvalOp);
         }
         // za CGP
-        else {
+        else if (Parameters::MODEL == 1) {
             state->setEvalOp(&cgpEvalOp);
         }
 
@@ -58,7 +58,6 @@ int main(int argc, char** argv) {
             Simulator sim;
             GenotypeP genotype = (GenotypeP)ind->getGenotype().get();
             if (Parameters::MODEL == 0) { // GP
-                // TODO: Razmisliti moze li se bolje bez ponovne inicijalizacije operatora
                 TreeModel* model = new TreeModel(genotype, gpEvalOp.terminal_names_);
                 PriorityHeuristic heuristic(model);
                 std::cout << "Running best individual" << std::endl;
@@ -66,7 +65,6 @@ int main(int argc, char** argv) {
                 std::cout << "KPI score of the best individual: " << score << std::endl;
             }
             if (Parameters::MODEL == 1) { // CGP
-                std::cout << "Using CGP genotype!" << std::endl;
                 CGPModel* model = new CGPModel(genotype);
                 PriorityHeuristic heuristic(model);
                 std::cout << "Running best individual" << std::endl;
