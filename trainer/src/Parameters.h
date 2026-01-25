@@ -27,7 +27,7 @@ public:
 	inline static std::string BEST_FILE = "best.txt";
 	inline static bool USING_ECF = false;
 	inline static bool RUN_BEST = false;
-	inline static int MODEL = 1; // 0 - GP; 1 - CGP
+	inline static int MODEL = -1; // 0 - GP; 1 - CGP
 	// Runner
 	inline static float KPI_W1 = 0.5;
 	inline static float KPI_W2 = -0.4;
@@ -45,7 +45,7 @@ public:
 	inline static float MAX_WAIT_FAC = 0.3;
 	inline static int ARRIVAL_PROB = 15; // /100
 	inline static int HANDOVER_PROB = 22; // /100
-	inline static bool SEED_SIM = true; // za CustomHeuristic seedaj sim prije pokretanja
+	inline static bool SEED_SIM = true; // seedaj sim prije pokretanja
 	inline static int SIMULATOR_SEED = 4444; // pocetni seed
 	// SimulatorEvalOp
 	inline static int SIM_STEPS = 50;
@@ -66,15 +66,20 @@ public:
 			return;
 		}
 
-		if (!params.getChildNode("ECF").isEmpty())
+		XMLNode ecf = params.getChildNode("ECF");
+		if (!ecf.isEmpty()) {
 			USING_ECF = true;
+			if (!ecf.getChildNodeByPath("Genotype/Tree").isEmpty())
+				MODEL = 0;
+			else if (!ecf.getChildNodeByPath("Genotype/Cartesian").isEmpty())
+				MODEL = 1;
+		}
 
 		XMLNode conf = params.getChildNode("Conf");
 
 		if (!conf.isEmpty()) {
 			readParam(conf, RUN_BEST, "Main", "RunBest");
 			readParam(conf, BEST_FILE, "Main", "BestFile");
-			readParam(conf, MODEL, "Main", "Model");
 
 			readParam(conf, KPI_W1, "KPI", "KpiW1");
 			readParam(conf, KPI_W2, "KPI", "KpiW2");

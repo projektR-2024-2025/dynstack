@@ -1,9 +1,9 @@
 #include "Heuristic.h"
-#include "Parameters.h"
+#include "Model.h"
 
 // PRIORITY HEURISTIC
 
-PriorityHeuristic::PriorityHeuristic(Model* model) : model_(model) {}
+PriorityHeuristic::PriorityHeuristic(ModelP model) : model_(model) {}
 
 // TODO
 std::vector<double> PriorityHeuristic::extract_features(const World& before, const World& after, Move& m) {
@@ -253,7 +253,6 @@ std::vector<Move> PriorityHeuristic::meta_alg_1(Simulator& sim) {
     }
     return moves;
 }
-
 
 // Force arival to buffer if there is more than one container on arrival stack.
 std::vector<Move> PriorityHeuristic::meta_alg_2(Simulator& sim) {

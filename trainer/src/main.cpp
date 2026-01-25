@@ -1,33 +1,35 @@
 #include <ECF/ECF.h>
-#include "SimulatorEvalOp.h"
-#include "SimulatorEvalCGPOp.h"
 #include "WriteBest.h"
 #include "Parameters.h"
 #include "SeedSimulator.h"
 #include "Heuristic.h"
 #include "Runner.h"
+#include "Model.h"
 
 int main(int argc, char** argv) {
 
     Parameters::readParameters(argc, argv);
 
+    if (Parameters::SEED_SIM)
+        Simulator::seed_simulator();
+
     if (Parameters::USING_ECF) {
         StateP state(new State);
+        ModelP model;
 
-        SimulatorEvalOp gpEvalOp;
-        SimulatorEvalCGPOp cgpEvalOp;
-
-        // za GP
-        if (Parameters::MODEL == 0) {
-            state->setEvalOp(&gpEvalOp);
+        switch(Parameters::MODEL) {
+            // za GP
+            case 0:
+                model = std::make_shared<TreeModel>(); break;
+            // za CGP
+            case 1:
+                model = std::make_shared<CGPModel>(); break;
+            default:
+                cout << "The given genotype is not supported." << endl;
+                return 2;
         }
-        // za CGP
-        else if (Parameters::MODEL == 1) {
-            state->setEvalOp(&cgpEvalOp);
-        }
 
-        //SimulatorEvalOp evalOp;
-        //state->setEvalOp(&evalOp);
+        state->setEvalOp(model);
         state->addOperator((OperatorP) new WriteBest);
         state->addOperator((OperatorP) new SeedSimulator);
         state->initialize(argc, argv);
@@ -42,6 +44,12 @@ int main(int argc, char** argv) {
             best.close();
         }
         else {
+            // TODO: makni ovo kad se nadogradi ECF ili promjeni GA
+            if (Parameters::MODEL == 1) {
+                cout << "Loading this type of GA is currently not supported :(" << endl;
+                return 3;
+            }
+
             XMLNode xInd = XMLNode::parseFile(Parameters::BEST_FILE.c_str(), "Individual");
             if (xInd.isEmpty()) {
                 std::cout << "Can't run best individual because the file " << Parameters::BEST_FILE << " doesn't exist or isn't properly formated!" << std::endl;
@@ -50,35 +58,19 @@ int main(int argc, char** argv) {
             }
             IndividualP ind = (IndividualP) new Individual(state);
             ind->read(xInd);
-            //Tree::Tree* tree = (Tree::Tree*)ind->getGenotype().get();
-            //GenotypeP genotype = (GenotypeP)ind->getGenotype().get();
-            //CGPModel* model = new CGPModel(genotype);
-
             Simulator sim;
-            GenotypeP genotype = (GenotypeP)ind->getGenotype().get();
-            if (Parameters::MODEL == 0) { // GP
-                TreeModel* model = new TreeModel(genotype, gpEvalOp.terminal_names_);
-                PriorityHeuristic heuristic(model);
-                std::cout << "Running best individual" << std::endl;
-                double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
-                std::cout << "KPI score of the best individual: " << score << std::endl;
-            }
-            if (Parameters::MODEL == 1) { // CGP
-                CGPModel* model = new CGPModel(genotype);
-                PriorityHeuristic heuristic(model);
-                std::cout << "Running best individual" << std::endl;
-                double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
-                std::cout << "KPI score of the best individual: " << score << std::endl;
-            }
+            model->set_genotype((GenotypeP) ind->getGenotype().get());
+            PriorityHeuristic heuristic(model);
+            std::cout << "Running best individual" << std::endl;
+            double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
+            std::cout << "KPI score of the best individual: " << score << std::endl;
         }
     }
     else {
         std::cout << "Running custom heuristic" << std::endl;
-        if (Parameters::SEED_SIM)
-            Simulator::seed_simulator();
         Simulator sim;
 
-        CustomHeuristic heuristic = CustomHeuristic();
+        CustomHeuristic heuristic;
         double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
         std::cout << "KPI score of custom heuristic: " << score << std::endl;
     }
