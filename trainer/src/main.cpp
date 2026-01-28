@@ -44,12 +44,6 @@ int main(int argc, char** argv) {
             best.close();
         }
         else {
-            // TODO: makni ovo kad se nadogradi ECF ili promjeni GA
-            if (Parameters::MODEL == 1) {
-                cout << "Loading this type of GA is currently not supported :(" << endl;
-                return 3;
-            }
-
             XMLNode xInd = XMLNode::parseFile(Parameters::BEST_FILE.c_str(), "Individual");
             if (xInd.isEmpty()) {
                 std::cout << "Can't run best individual because the file " << Parameters::BEST_FILE << " doesn't exist or isn't properly formated!" << std::endl;
