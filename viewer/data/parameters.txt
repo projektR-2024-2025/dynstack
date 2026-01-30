@@ -1,14 +1,31 @@
 <ECF>
     <Genotype>
         <Tree>
-            <Entry key="functionset">+ - * / sin cos</Entry>
-            <Entry key="terminalset">t1 t2 t3 t4 t5 t6</Entry>
+            <Entry key="functionset">+ - * / min max</Entry>
+            <Entry key="terminalset">t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15</Entry>
             <Entry key="mindepth">1</Entry>
             <Entry key="maxdepth">5</Entry>
         </Tree>
     </Genotype>
     <Registry>
-	    <Entry key="term.eval">1000</Entry>
+	    <Entry key="term.eval">3000</Entry>
         <Entry key="log.filename">log.txt</Entry>
     </Registry>
 </ECF>
+<Conf>
+    <BestFile>best.txt</BestFile>
+    <KpiW1>0.5</KpiW1>
+    <KpiW2>-0.4</KpiW2>
+    <KpiW3>0.1</KpiW3>
+    <PrintSteps>0</PrintSteps>
+    <MaxArrivalSize>3</MaxArrivalSize>
+    <MaxBufferSize>8</MaxBufferSize>
+    <MinInitialBuffer>2</MinInitialBuffer>
+    <MaxInitialBuffer>4</MaxInitialBuffer>
+    <MinWaitTime>1</MinWaitTime>
+    <MaxWaitTime>15</MaxWaitTime>
+    <ArrivalProbability>10</ArrivalProbability>
+    <HandoverProbability>20</HandoverProbability>
+    <InitalizeBuffers>1</InitalizeBuffers>
+    <SimulationSteps>1000</SimulationSteps>
+</Conf>

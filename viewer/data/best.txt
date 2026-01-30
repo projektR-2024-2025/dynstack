@@ -1,4 +1,4 @@
 <Individual size="1">
-	<FitnessMin value="-1.9"/>
-	<Tree size="13">t1</Tree>
+	<FitnessMin value="-17.5"/>
+	<Tree size="47">+ * * min - t3 t13 t14 + min t15 t14 - t2 t5 + / / t10 t15 / t1 t12 min / t6 t1 max t7 t6 * min min t1 max t6 t13 t11 - t6 - / t5 t12 + t1 t1 </Tree>
 </Individual>

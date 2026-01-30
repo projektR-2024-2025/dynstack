@@ -2,9 +2,10 @@
 #include <zmq.hpp>
 #include <zmq_addon.hpp>
 #include <ECF/ECF.h>
+#include <cstdlib>
 
 #include "hotstorage/hotstorage_model.pb.h"
-#include "hotstorage/heuristic.h"
+#include "hotstorage/stacking.h"
 #include "SimulatorEvalOp.h"
 
 using std::cout;
@@ -18,7 +19,8 @@ int main(int argc, char* argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     StateP state(new State);
-    state->setEvalOp(new SimulatorEvalOp);
+    SimulatorEvalOp evalOp;
+    state->setEvalOp(&evalOp);
     const char* arr[] = {"state", "/data/parameters.txt"};
     const char** ptr = arr;
     state->initialize(2, ptr);
@@ -26,7 +28,11 @@ int main(int argc, char* argv[]) {
 	IndividualP ind = (IndividualP) new Individual(state);
 	ind->read(xInd);
     Tree::Tree* tree = (Tree::Tree*)ind->getGenotype().get();
-	std::vector<std::string> terminal_names_ = { "t1", "t2", "t3", "t4", "t5", "t6" };
+    const char* mode_env = std::getenv("MODE");
+    std::string mode("HEURISTIC");
+
+    if (mode_env)
+        mode = mode_env;
 
     auto addr = argv[1];
     auto sim_id = argv[2];
@@ -49,7 +55,10 @@ int main(int argc, char* argv[]) {
         std::optional<std::string> answer;
         switch (problem) {
         case Problem::Hotstorage:
-            answer = DynStacking::HotStorage::calculate_answer(msg[2].data(), msg[2].size(), tree, terminal_names_);
+            if (mode.compare("HEURISTIC") == 0)
+                answer = DynStacking::HotStorage::Heuristic::calculate_answer(msg[2].data(), msg[2].size());
+            else if (mode.compare("GENETIC") == 0)
+                answer = DynStacking::HotStorage::Genetic::calculate_answer(msg[2].data(), msg[2].size(), tree, evalOp.terminal_names_);
             break;
         }
         if (answer) {

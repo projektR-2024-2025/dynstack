@@ -3,6 +3,8 @@ services:
     container_name: dynview
     # build: ./viewer/sim_runner
     image: micamaca44/dynview:latest
+    environment:
+      - SIMULATOR_DURATION=10 # u minutama
     ports:
       - "2222:2222"
       - "8080:8080"
@@ -11,5 +13,7 @@ services:
     container_name: stacker
     # build: ./viewer/gp_runner
     image: micamaca44/stacker:latest
+    environment:
+      - MODE=HEURISTIC # HEURISTIC / GENETIC
     volumes:
       - ./viewer/data:/data:z

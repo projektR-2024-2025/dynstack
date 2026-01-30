@@ -1,13 +1,15 @@
 <ECF>
-    <Genotype>
-        <Tree>
-            <Entry key="functionset">+ - * / min max</Entry>
-            <Entry key="terminalset">t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15</Entry>
-            <Entry key="mindepth">1</Entry>
-            <Entry key="maxdepth">5</Entry>
-        </Tree>
-    </Genotype>
-    <Registry>
+	<Genotype>
+		<Cartesian>
+			<Entry key="numvariables">15</Entry>
+			<Entry key="numoutputs">1</Entry>
+			<Entry key="numrows">2</Entry>
+			<Entry key="numcols">5</Entry>
+			<Entry key="levelsback">3</Entry>
+			<Entry key="functionset">+ * - / pos min max</Entry>
+		</Cartesian>
+	</Genotype>
+	<Registry>
 	    <Entry key="term.eval">3000</Entry>
         <Entry key="log.filename">log.txt</Entry>
     </Registry>

@@ -4,53 +4,90 @@
 #include <stack>
 #include <random>
 #include <iostream>
+#include <iomanip>
+
+#include "Parameters.h"
+
+#if defined(_WIN32) || defined(_WIN64)
+    #define CLEAR_TERM "cls"  // Windows
+#else
+    #define CLEAR_TERM "clear" // Linux/macOS
+#endif
 
 struct Container {
     int id, wait, overdue, arrival_time;
-    Container(int id, int w, int o, int t);
-    bool is_ready(int current_time) const;
-    bool is_overdue(int current_time) const;
-    int until_ready(int current_time) const;
-    int get_overdue(int current_time) const;
+    Container(int id, int w, int o, int t) : id(id), wait(w), overdue(o), arrival_time(t) {}
+    bool is_ready(int current_time) const {
+        return (current_time - arrival_time) > wait;
+    }
+    bool is_overdue(int current_time) const {
+        return (current_time - arrival_time) > (overdue + wait);
+    }
+    int get_overdue(int current_time) const {
+        return (current_time - arrival_time) - (overdue + wait);
+    }
+};
+
+struct KPI_t {
+    int blocked_arrival;
+    int blocks_on_time;
+    int crane_manipulations;
+    int delivered_blocks;
+    double leadtime;
+    double service_level;
+    double buffer_util;
+    double handover_util;
+
+    void print() {
+        std::cout << "Blocked arrival: " << blocked_arrival << ", Blocks on time: " << blocks_on_time
+            << ", Crane manipulations: " << crane_manipulations << ", Delivered blocks: " << delivered_blocks
+            << ", Leadtime: " << leadtime << ", Service level: " << service_level << ", Buffer util: " << buffer_util
+            << ", Handover util: " << handover_util << std::endl;
+    }
 };
 
 struct World {
     int time;
     std::stack<Container> arrival_stack, handover_stack;
     std::stack<Container> buffers[3];
+    const int max_arrival_size;
     const int max_buffer_size;
-    int KPI[3];
+    KPI_t KPI;
 };
 
 class Simulator {
 private:
-    int arrival_density;
     int time = 0;
     std::stack<Container> arrival_stack, handover_stack;
     std::stack<Container> buffers[3];
     std::mt19937 rng;
+    inline static double seed = Parameters::SIMULATOR_SEED;
     int next_id = 1;
-    const int max_buffer_size = 8;
-    int processed_count = 0;
-    int KPI[3] = {0, 0, 0};
+    KPI_t KPI = {0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0};
+    int delivered_on_time = 0;
+    int leadtime = 0;
     bool is_crane_avail = true;
-    bool print_steps = false;
+    bool made_move = false;
 
     void initalize_buffers();
     void generate_arrival();
     bool process_handover_top();
+    void calculate_KPI();
 
 public:
-    Simulator(int arrival_density, bool initalize_buffers);
+    Simulator();
     ~Simulator() = default;
 
     World getWorld();
     bool move_arrival_to_buffer(int buffer_id);
     bool move_buffer_to_buffer(int from_buffer_id, int to_buffer_id);
     bool move_buffer_to_handover(int buffer_id);
+    bool move_arrival_to_handover();
     void print_status();
-    void set_print_steps(bool val) { print_steps = val; }
+    void print_state();
     void step();
+
+    static void seed_simulator();
 };
 
 #endif // SIMULATOR_H

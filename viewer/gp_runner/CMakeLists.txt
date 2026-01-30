@@ -11,8 +11,9 @@ find_package(cppzmq CONFIG REQUIRED)
 
 add_executable(stacking
   "src/stacking.cc"
-  "src/hotstorage/heuristic.h"
+  "src/hotstorage/stacking.h"
   "src/hotstorage/heuristic.cc"
+  "src/hotstorage/genetic.cc"
   "src/hotstorage/hotstorage_model.pb.cc"
   "src/hotstorage/hotstorage_model.pb.h"
   "src/SimulatorEvalOp.cpp"

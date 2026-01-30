@@ -1,213 +1,239 @@
 #include "hotstorage_model.pb.h"
-#include "heuristic.h"
+#include "stacking.h"
 #include <optional>
 #include <vector>
+#include <iostream>
+#include <algorithm>
+#include <climits>
 
 namespace DynStacking {
     namespace HotStorage {
+
         using namespace DataModel;
 
-        enum class MoveType {
-            NONE,
-            ARRIVAL_TO_BUFFER,
-            BUFFER_TO_HANDOVER,
-            BUFFER_TO_BUFFER
-        };
-
-        struct Move {
-            MoveType type;
-            int source;
-            int target;
-        };
-
-        bool apply_move(World& w, const Move& m) {
-            switch (m.type) {
-            case MoveType::ARRIVAL_TO_BUFFER: {
-                if (w.production().bottomtotop_size() == 0) {
-                    return false;
-                }
-                const auto& block = w.production().bottomtotop(w.production().bottomtotop_size() - 1);
-                auto buffer_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
-                    [&](const Stack& s) { return s.id() == m.target; });
-                if (buffer_it == w.mutable_buffers()->end()) {
-                    return false;
-                }
-                auto& buffer = *buffer_it;
-                if (buffer.bottomtotop_size() >= buffer.maxheight()) {
-                    return false;
-                }
-                *buffer.add_bottomtotop() = block;
-                w.mutable_production()->mutable_bottomtotop()->RemoveLast();
-                return true;
-            }
-            case MoveType::BUFFER_TO_HANDOVER: {
-                auto buffer_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
-                    [&](const Stack& s) { return s.id() == m.source; });
-                if (buffer_it == w.mutable_buffers()->end() || buffer_it->bottomtotop_size() == 0) {
-                    return false;
-                }
-                const auto& block = buffer_it->bottomtotop(buffer_it->bottomtotop_size() - 1);
-                if (!block.ready()) {
-                    return false;
-                }
-                *w.mutable_handover()->mutable_block() = block;
-                buffer_it->mutable_bottomtotop()->RemoveLast();
-                return true;
-            }
-            case MoveType::BUFFER_TO_BUFFER: {
-                auto src_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
-                    [&](const Stack& s) { return s.id() == m.source; });
-                auto dst_it = std::find_if(w.mutable_buffers()->begin(), w.mutable_buffers()->end(),
-                    [&](const Stack& s) { return s.id() == m.target; });
-                if (src_it == w.mutable_buffers()->end() || dst_it == w.mutable_buffers()->end() ||
-                    src_it->bottomtotop_size() == 0 || dst_it->bottomtotop_size() >= dst_it->maxheight()) {
-                    return false;
-                }
-                const auto& block = src_it->bottomtotop(src_it->bottomtotop_size() - 1);
-                *dst_it->add_bottomtotop() = block;
-                src_it->mutable_bottomtotop()->RemoveLast();
-                return true;
-            }
-            case MoveType::NONE: default:
-                return false;
-            }
+        long long TUD(const Block& b, const World& w) {
+            return b.due().milliseconds() - w.now().milliseconds();
         }
 
-        std::vector<Move> possible_moves(const World& w) {
-            std::vector<Move> moves;
-            if (w.production().bottomtotop_size()) {
-                for (auto& stack : w.buffers()) {
-                    if (stack.bottomtotop_size() < stack.maxheight()) {
-                        moves.push_back(Move{MoveType::ARRIVAL_TO_BUFFER, -1, stack.id()});
-                    }
-                }
-            } else {
-                // BUFFER -> HANDOVER
-                for (auto& stack : w.buffers()) {
-                    if (stack.bottomtotop_size()) {
-                        const Block& top = stack.bottomtotop(stack.bottomtotop_size() - 1);
-                        if (top.ready()) {
-                            moves.push_back(Move{MoveType::BUFFER_TO_HANDOVER, stack.id(), -1});
-                        }
-                    }
-                }
-
-                // BUFFER -> BUFFER
-                for (auto& src : w.buffers()) {
-                    if (src.bottomtotop_size()) {
-                        for (auto& dst : w.buffers()) {
-                            if (src.id() != dst.id()) {
-                                if (dst.bottomtotop_size() < dst.maxheight()) {
-                                    moves.push_back(Move{MoveType::BUFFER_TO_BUFFER, src.id(), dst.id()});
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return moves;
+        bool has_free_space(const Stack& s) {
+            return s.bottomtotop_size() < s.maxheight();
         }
 
-        std::vector<double> extract_features(const World& world) {
-            std::vector<double> features;
-            features.push_back(static_cast<double>(world.now().milliseconds()) * 0.001);
-            features.push_back(static_cast<double>(world.production().bottomtotop_size()));
-            features.push_back(static_cast<double>(world.handover().ready()));
-            
-            for (const auto& stack : world.buffers()) {
-                features.push_back(static_cast<double>(stack.bottomtotop_size()));
+        // buffer s najmanje READY blokova 
+        const Stack* buffer_with_least_ready(const World& world) {
+            const Stack* best = nullptr;
+            int best_cnt = INT_MAX;
+
+            for (const auto& s : world.buffers()) {
+                if (!has_free_space(s)) continue;
+
+                int cnt = 0;
+                for (const auto& blk : s.bottomtotop())
+                    if (blk.ready()) cnt++;
+
+                if (cnt < best_cnt) {
+                    best_cnt = cnt;
+                    best = &s;
+                }
             }
-            return features;
+            return best;
         }
 
-        double evaluate_move(const World& world, const Move& move, Tree::Tree* tree, std::vector<std::string>& terminal_names){
-            World w_copy = world;
-            apply_move(w_copy, move);
-            auto features = extract_features(w_copy);
+        // READY blok na vrhu s najmanjim TUD
+        std::optional<std::pair<const Block*, int>> best_ready_on_top(const World& world) {
+            const Block* best = nullptr;
+            int best_stack = -1;
+            long long best_tud = LLONG_MAX;
 
-            for (size_t i = 0; i < terminal_names.size(); ++i) {
-                tree->setTerminalValue(terminal_names[i], (void*)&features[i]);
-            }
+            for (const auto& s : world.buffers()) {
+                int n = s.bottomtotop_size();
+                if (n == 0) continue;
 
-            double result;
-            tree->execute(&result);
+                const auto& top = s.bottomtotop(n - 1);
+                if (!top.ready()) continue;
 
-            return result;
-        }
-
-        Move calculate_move(const World& world, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
-            auto moves = possible_moves(world);
-            if (moves.empty()) return {MoveType::NONE, -1, -1};
-            double best_value = -std::numeric_limits<double>::infinity();
-            Move best_move = moves[0];
-
-            for (auto& move : moves) {
-                double value = evaluate_move(world, move, tree, terminal_names);
-                if (value > best_value) {
-                    best_value = value;
-                    best_move = move;
+                long long tud = TUD(top, world);
+                if (tud < best_tud) {
+                    best_tud = tud;
+                    best = &top;
+                    best_stack = s.id();
                 }
             }
 
-            return best_move;
-        }
-
-        std::optional<CraneSchedule> plan_moves(World& world, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
-            if (world.crane().schedule().moves_size() > 0) {
-                return {};
-            }
-            
-            CraneSchedule schedule;
-            auto best_move = calculate_move(world, tree, terminal_names);
-            
-            if (best_move.type != MoveType::NONE) {
-                auto* move = schedule.add_moves();
-                
-                if (best_move.type == MoveType::ARRIVAL_TO_BUFFER) {
-                    if (world.production().bottomtotop_size() > 0) {
-                        move->set_blockid(world.production().bottomtotop(world.production().bottomtotop_size() - 1).id());
-                        move->set_sourceid(world.production().id());
-                    }
-                } else {
-                    auto src_it = std::find_if(world.buffers().begin(), world.buffers().end(),
-                                            [&](const Stack& s) { return s.id() == best_move.source; });
-                    if (src_it != world.buffers().end() && src_it->bottomtotop_size() > 0) {
-                        move->set_blockid(src_it->bottomtotop(src_it->bottomtotop_size() - 1).id());
-                        move->set_sourceid(src_it->id());
-                    }
-                }
-
-                if (best_move.type == MoveType::BUFFER_TO_HANDOVER) {
-                    if (world.handover().ready()) {
-                        move->set_targetid(world.handover().id());
-                    }
-                }
-                else {
-                    auto dst_it = std::find_if(world.buffers().begin(), world.buffers().end(),
-                                            [&](const Stack& s) { return s.id() == best_move.target; });
-                    if (dst_it != world.buffers().end() && dst_it->bottomtotop_size() < dst_it->maxheight()) {
-                        move->set_targetid(dst_it->id());
-                    }
-                }
-                
-                schedule.set_sequencenr(1);
-                std::cout << schedule.DebugString() << std::endl;
-                return schedule;
-            }
-            
+            if (best)
+                return std::make_pair(best, best_stack);
             return {};
         }
 
-        std::optional<std::string> calculate_answer(void* world_data, size_t len, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
+
+        struct CoveredReady {
+            int stack_id;
+            int blocking_index;
+            const Block* ready_block;
+        };
+
+        // pronadi ready blok najbliži vrhu, ali ne na vrhu
+        std::optional<CoveredReady> covered_ready_block(const World& world) {
+            CoveredReady best{};
+            int best_depth = INT_MAX;
+
+            for (const auto& s : world.buffers()) {
+                int n = s.bottomtotop_size();
+                if (n == 0) continue;
+
+                // ignoriraj stog ako je READY blok na vrhu
+                const auto& top = s.bottomtotop(n - 1);
+                if (top.ready()) continue;
+
+                // traži ready blokove ispod vrha
+                for (int i = n - 2; i >= 0; --i) {
+                    if (s.bottomtotop(i).ready()) {
+                        int depth = n - i - 1;
+                        if (depth < best_depth) {
+                            best_depth = depth;
+                            best.stack_id = s.id();
+                            best.blocking_index = i + 1;
+                            best.ready_block = &s.bottomtotop(i);
+                        }
+                        break; // samo najbliži vrhu
+                    }
+                }
+            }
+            if (best_depth < INT_MAX)
+                return best;
+            return {};
+        }
+
+
+        //buffer bez READY bloka na vrhu, s najmanje blokova
+        const Stack* buffer_without_ready_on_top(const World& world, int forbidden_stack_id) {
+            const Stack* best = nullptr;
+            int best_size = INT_MAX;
+
+            for (const auto& s : world.buffers()) {
+                if (s.id() == forbidden_stack_id) continue;
+                if (!has_free_space(s)) continue;
+
+                int n = s.bottomtotop_size();
+                if (n > 0 && s.bottomtotop(n - 1).ready()) continue;
+
+                if (n < best_size) {
+                    best_size = n;
+                    best = &s;
+                }
+            }
+            return best;
+        }
+
+        //GLAVNA HEURISTIKA
+
+        std::optional<CraneSchedule> plan_moves(World& world) {
+
+            if (world.crane().schedule().moves_size() > 0)
+                return {};
+
+            CraneSchedule schedule;
+
+            //AKO postoji blok na arrival I ima mjesta na buffer
+            const auto& prod = world.production();
+            if (prod.bottomtotop_size() > 0) {
+                const Stack* tgt = buffer_with_least_ready(world);
+                if (tgt) {
+                    const auto& blk = prod.bottomtotop(
+                        prod.bottomtotop_size() - 1
+                    );
+
+                    std::cout << "[H1] Arrival block "
+                            << blk.id()
+                            << " -> buffer " << tgt->id()
+                            << " (least READY)\n";
+
+                    auto* m = schedule.add_moves();
+                    m->set_blockid(blk.id());
+                    m->set_sourceid(prod.id());
+                    m->set_targetid(tgt->id());
+
+                    schedule.set_sequencenr(
+                        world.crane().schedule().sequencenr() + 1
+                    );
+                    return schedule;
+                }
+            }
+            // handover ready i ima ready blokova na vrhu
+            if (world.handover().ready()) {
+                auto best = best_ready_on_top(world);
+                if (best.has_value()) {
+                    std::cout << "[H2] Ready block "
+                            << best->first->id()
+                            << " from stack " << best->second
+                            << " -> HANDOVER (TUD="
+                            << TUD(*best->first, world) << ")\n";
+
+                    auto* m = schedule.add_moves();
+                    m->set_blockid(best->first->id());
+                    m->set_sourceid(best->second);
+                    m->set_targetid(world.handover().id());
+
+                    schedule.set_sequencenr(
+                        world.crane().schedule().sequencenr() + 1
+                    );
+                    return schedule;
+                }
+            }
+
+            //ready blok zaklonjen
+            auto covered = covered_ready_block(world);
+            if (covered.has_value()) {
+                const Stack* tgt = buffer_without_ready_on_top(
+                    world, covered->stack_id
+                );
+
+                if (tgt) {
+                    const Stack& src = *std::find_if(
+                        world.buffers().begin(),
+                        world.buffers().end(),
+                        [&](const Stack& s) {
+                            return s.id() == covered->stack_id;
+                        }
+                    );
+
+                    const auto& blocker =
+                        src.bottomtotop(covered->blocking_index);
+
+                    std::cout << "[H3] Uncover READY block "
+                            << covered->ready_block->id()
+                            << " by moving blocker "
+                            << blocker.id()
+                            << " -> buffer " << tgt->id()
+                            << "\n";
+
+                    auto* m = schedule.add_moves();
+                    m->set_blockid(blocker.id());
+                    m->set_sourceid(src.id());
+                    m->set_targetid(tgt->id());
+
+                    schedule.set_sequencenr(
+                        world.crane().schedule().sequencenr() + 1
+                    );
+                    return schedule;
+                }
+            }
+
+            std::cout << "[H] No applicable move\n";
+            return {};
+        }
+
+        // calculate answer isti kao i u template heuristiki
+        std::optional<std::string> Heuristic::calculate_answer(void* world_data, size_t len) {
             World world;
             world.ParseFromArray(world_data, len);
-            auto plan = plan_moves(world, tree, terminal_names);
-            if (plan.has_value()) {
-                return plan.value().SerializeAsString();
-            }
-            else {
-                return {};
-            }
+
+            auto plan = plan_moves(world);
+            if (plan.has_value())
+                return plan->SerializeAsString();
+
+            return {};
         }
-    }
+
+    } 
 }

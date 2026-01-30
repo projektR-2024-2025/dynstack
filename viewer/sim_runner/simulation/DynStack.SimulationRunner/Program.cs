@@ -66,6 +66,9 @@ update, but only after the measured time has passed in the simulation.
          amount of wall clock time that the policy took to compute.
 ""false"" (default) means the policy's decisions are effective immediately.")]
     public bool SimulateAsync { get; set; }
+
+    [Option("dur", Required = false, Default = "Console", HelpText =@"Simulation Duration")]
+    public int Duration { get; set; }
   }
 
   public class Program {
@@ -96,6 +99,7 @@ update, but only after the measured time has passed in the simulation.
       } else if (!o.Log.Equals("none", StringComparison.OrdinalIgnoreCase)) {
         Logger = File.CreateText(o.Log);
       };
+      HS.SimulationHost.DefaultSettings.SimulationDuration = TimeSpan.FromMinutes(o.Duration);
       try {
         switch (o.SimType) {
           case SimulationType.HS:
