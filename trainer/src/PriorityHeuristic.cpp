@@ -50,6 +50,63 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     double handover_ready_before = before.handover_stack.empty();
     double handover_ready_after = after.handover_stack.empty();
 
+    //stack rankings
+    const double TUD_EPS = 1.0;
+    double min_tud[5];
+    double avg_tud[5];
+    bool empty[5];
+    for (int i = 0; i < 5; ++i) {
+        min_tud[i] = std::numeric_limits<double>::infinity();
+        avg_tud[i] = std::numeric_limits<double>::infinity();
+        empty[i] = true;
+    }
+    for (int i = 0; i < 5; ++i) {
+        std::stack<Container> s;
+        if (i == 0) s = before.arrival_stack;
+        else if (i >= 1 && i <= 3) s = before.buffers[i - 1];
+        else s = before.handover_stack;
+        if (s.empty()) continue;
+        double sum = 0.0;
+        int cnt = 0;
+        while (!s.empty()) {
+            const auto& c = s.top();
+            double tud = c.arrival_time + c.wait + c.overdue - before.time;
+            if (tud >=0){ //gledamo samo nenegativne (oni koji vec kasne su manje bitni)
+                min_tud[i] = std::min(min_tud[i], tud);
+                sum += tud;
+                cnt++;
+            }
+            s.pop();
+        }
+        if (cnt!=0) 
+            avg_tud[i] = sum / cnt;
+        empty[i] = false;
+    }
+    int emptying_priority[5] = {0, 0, 0, 0, 0}; //svaki stack ima svoj prioritet praznjenja ovisno o tome koliki je najmanji tud
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            if (i == j) continue;
+            if (!empty[i] && empty[j]) {
+                emptying_priority[i]++;
+                continue;
+            }
+            if (empty[i] && !empty[j])
+                continue;
+            double d = min_tud[j] - min_tud[i];
+            if (std::abs(d) < TUD_EPS) { //ako su najmanji tud-ovi slicni na oba stacka gledaj prosjecan
+                if (avg_tud[j] > avg_tud[i])
+                    emptying_priority[i]++;
+            } else if (min_tud[j] > min_tud[i]) {
+                emptying_priority[i]++;
+            }
+        }
+    }
+    int highest_emptying_priority_idx = 0;
+    for (int i = 1; i < 5; ++i)
+        if (emptying_priority[i] > emptying_priority[highest_emptying_priority_idx])
+            highest_emptying_priority_idx = i;
+    double highest_emptying_priority_tud = double(min_tud[highest_emptying_priority_idx]);
+
     //LOKALNE (VEZANE UZ POTEZ)
     double moved_ready = 0.0; //jeli blok koji smo pomakli ready
     double moved_tud = 0.0; //tud bloka kojeg smo pomakli
@@ -66,8 +123,8 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     }
     //src
     std::stack<Container> src_stack;
-    if (m.from >= 0 && m.from <= 2) src_stack = before.buffers[m.from];
-    else if (m.type == MoveType::ARRIVAL_TO_BUFFER) src_stack = before.arrival_stack;
+    src_stack = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.arrival_stack : before.buffers[m.from];
+
     double src_size = double(src_stack.size());
     double src_ready = 0.0; //koliko ima ready blokova na src
     double src_overdue = 0.0; //koliko ima overdue blokova na src
@@ -78,12 +135,10 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     }
     //dest
     std::stack<Container> dest_stack;
+    dest_stack = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.handover_stack : before.buffers[m.to];
     double dest_size = 0.0;
     double dest_ready = 0.0;
     double dest_overdue = 0.0;
-
-    if (m.to >= 0 && m.to <= 2) dest_stack = after.buffers[m.to];
-    else if (m.type == MoveType::BUFFER_TO_HANDOVER) dest_stack = after.handover_stack;
     dest_size = double(dest_stack.size());
     if (!dest_stack.empty()) {
         while (!dest_stack.empty()) {
@@ -93,6 +148,23 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
         }
     }
 
+    int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.from + 1 ;
+    int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.to + 1;
+    double src_emptying_priority = double(emptying_priority[src_idx]) ;
+    double dest_emptying_priority = double(emptying_priority[dest_idx]) ;
+
+    // razlika u kpi-jevima
+    const KPI_t& kb = before.KPI;
+    const KPI_t& ka = after.KPI;
+    double delta_blocked_arrival = ka.blocked_arrival - kb.blocked_arrival;
+    double delta_blocks_on_time = ka.blocks_on_time - kb.blocks_on_time;
+    double delta_crane_manip = ka.crane_manipulations - kb.crane_manipulations;
+    double delta_delivered = ka.delivered_blocks - kb.delivered_blocks;
+    double delta_leadtime = ka.leadtime - kb.leadtime;
+    double delta_service_level = ka.service_level - kb.service_level;
+    double delta_buffer_util = ka.buffer_util - kb.buffer_util;
+    double delta_handover_util = ka.handover_util - kb.handover_util;
+
     features.push_back(delta_arrival);
     features.push_back(delta_total_ready);
     features.push_back(delta_total_blocks);
@@ -100,14 +172,28 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     features.push_back(delta_overdue_blocks);
     features.push_back(handover_ready_before);
     features.push_back(handover_ready_after);
+    features.push_back(double(highest_emptying_priority_idx));
+    features.push_back(highest_emptying_priority_tud);
+
     features.push_back(moved_ready);
     features.push_back(moved_tud);
     features.push_back(src_size);
     features.push_back(src_ready);
     features.push_back(src_overdue);
+    features.push_back(src_emptying_priority);
     features.push_back(dest_size);
     features.push_back(dest_ready);
     features.push_back(dest_overdue);
+    features.push_back(dest_emptying_priority);
+
+    features.push_back(delta_blocked_arrival);
+    features.push_back(delta_blocks_on_time);
+    features.push_back(delta_crane_manip);
+    features.push_back(delta_delivered);
+    features.push_back(delta_leadtime);
+    features.push_back(delta_service_level);
+    features.push_back(delta_buffer_util);
+    features.push_back(delta_handover_util);
 
     return features;
 }
