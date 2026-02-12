@@ -241,8 +241,8 @@ namespace DynStacking {
 
             for (int i = 0; i < 5; ++i){
                 std::vector<Block> stack_blocks;
-                if (i == 0) stack_blocks = before.production().bottomtotop();
-                else if (i >= 1 && i <= 3) stack_blocks = before.buffers(i - 1).bottomtotop();
+                if (i == 0) stack_blocks.assign(before.production().bottomtotop().begin(), before.production().bottomtotop().end());
+                else if (i >= 1 && i <= 3) stack_blocks.assign(before.buffers(i - 1).bottomtotop().begin(), before.buffers(i - 1).bottomtotop().end());
                 else stack_blocks.push_back(before.handover().block());
 
                 if (stack_blocks.empty()) continue;
@@ -340,16 +340,16 @@ namespace DynStacking {
                 }
             }
 
-            int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.from + 1;
-            int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.to + 1;
+            int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.source + 1;
+            int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.target + 1;
             double src_emptying_priority  = emptying_priority[src_idx];
             double dest_emptying_priority = emptying_priority[dest_idx];
 
             //delta kpi
-            const auto& kb = before.KPIs();
-            const auto& ka = after.KPIs();
-            double delta_blocked_arrival = ka.blockedarrival() - kb.blockedarrival();
-            double delta_blocks_on_time  = ka.totalblockson_time() - kb.totalblockson_time();
+            const auto& kb = before.kpis();
+            const auto& ka = after.kpis();
+            double delta_blocked_arrival = ka.blockedarrivaltime() - kb.blockedarrivaltime();
+            double delta_blocks_on_time  = ka.totalblocksontime() - kb.totalblocksontime();
             double delta_crane_manip     = ka.cranemanipulations() - kb.cranemanipulations();
             double delta_delivered       = ka.deliveredblocks() - kb.deliveredblocks();
             double delta_leadtime        = ka.leadtimemean() - kb.leadtimemean();
