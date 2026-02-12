@@ -2,6 +2,8 @@
 #include "stacking.h"
 #include <optional>
 #include <vector>
+#include <string>
+#include <sstream>
 
 namespace DynStacking {
     namespace HotStorage {
@@ -20,6 +22,27 @@ namespace DynStacking {
             int source;
             int target;
         };
+
+        std::vector<int> parse_feat_select() {
+            std::vector<int> features;
+            const char* feat_env = std::getenv("FEAT_SELECT");
+            
+            if (!feat_env) {
+                for (int i = 0; i < 5; ++i)
+                    features.push_back(i);
+                return features;
+            }
+
+            std::string feat_str(feat_env);
+            std::stringstream ss(feat_str);
+            std::string token;
+
+            while (std::getline(ss, token, ',')) {
+                features.push_back(std::stoi(token));
+            }
+
+            return features;
+        }
 
         bool apply_move(World& w, const Move& m) {
             switch (m.type) {
@@ -391,8 +414,14 @@ namespace DynStacking {
         }
 
         std::vector<double> selection(std::vector<double> features){
-            //todo
-            return features;
+            std::vector<int> selected_features = parse_feat_select();
+            std::vector<double> selected;
+            for (int idx : selected_features){
+                if (idx >= 1 && idx <= (int)features.size())
+                    selected.push_back(features[idx - 1]);
+            }
+            std::cout << "Selected features: " << selected.size() << " out of " << features.size() << std::endl;
+            return selected;
         }
 
         double evaluate_move(const World& world, const Move& move, ModelP model){
