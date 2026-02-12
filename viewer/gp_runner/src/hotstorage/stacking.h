@@ -1,5 +1,6 @@
 #include <optional>
 #include <ECF/ECF.h>
+#include "../Model.h"
 
 namespace DynStacking {
 	namespace HotStorage {
@@ -11,7 +12,7 @@ namespace DynStacking {
 		class Genetic
 		{
 		public:
-			static std::optional<std::string> calculate_answer(void* world_data, size_t len, Tree::Tree* tree, std::vector<std::string>& terminal_names);
+			static std::optional<std::string> calculate_answer(void* world_data, size_t len, ModelP model);
 		};
 	}
 }

@@ -16,7 +16,7 @@ add_executable(stacking
   "src/hotstorage/genetic.cc"
   "src/hotstorage/hotstorage_model.pb.cc"
   "src/hotstorage/hotstorage_model.pb.h"
-  "src/SimulatorEvalOp.cpp"
+  "src/Model.cpp"
 )
 
 target_include_directories(stacking PRIVATE /usr/local/include)

@@ -395,29 +395,26 @@ namespace DynStacking {
             return features;
         }
 
-        double evaluate_move(const World& world, const Move& move, Tree::Tree* tree, std::vector<std::string>& terminal_names){
-            World w_copy = world;
+        double evaluate_move(const World& world, const Move& move, ModelP model){
+            World w_copy;
+            w_copy.CopyFrom(world);
             apply_move(w_copy, move);
             auto features = selection(extract_features(world, w_copy, move));
 
-            for (size_t i = 0; i < terminal_names.size(); ++i) {
-                tree->setTerminalValue(terminal_names[i], (void*)&features[i]);
-            }
-
-            double result;
-            tree->execute(&result);
+            double result = 0.0;
+            model->execute(result, features);
 
             return result;
         }
 
-        Move calculate_move(const World& world, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
+        Move calculate_move(const World& world, ModelP model) {
             auto moves = meta_alg_3(world);
             if (moves.empty()) return {MoveType::NONE, -1, -1};
             double best_value = -std::numeric_limits<double>::infinity();
             Move best_move = moves[0];
 
             for (auto& move : moves) {
-                double value = evaluate_move(world, move, tree, terminal_names);
+                double value = evaluate_move(world, move, model);
                 if (value > best_value) {
                     best_value = value;
                     best_move = move;
@@ -427,13 +424,13 @@ namespace DynStacking {
             return best_move;
         }
 
-        std::optional<CraneSchedule> plan_moves(World& world, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
+        std::optional<CraneSchedule> plan_moves(World& world, ModelP model) {
             if (world.crane().schedule().moves_size() > 0) {
                 return {};
             }
             
             CraneSchedule schedule;
-            auto best_move = calculate_move(world, tree, terminal_names);
+            auto best_move = calculate_move(world, model);
             
             if (best_move.type != MoveType::NONE) {
                 auto* move = schedule.add_moves();
@@ -473,10 +470,10 @@ namespace DynStacking {
             return {};
         }
 
-        std::optional<std::string> Genetic::calculate_answer(void* world_data, size_t len, Tree::Tree* tree, std::vector<std::string>& terminal_names) {
+        std::optional<std::string> Genetic::calculate_answer(void* world_data, size_t len, ModelP model) {
             World world;
             world.ParseFromArray(world_data, len);
-            auto plan = plan_moves(world, tree, terminal_names);
+            auto plan = plan_moves(world, model);
             if (plan.has_value()) {
                 return plan.value().SerializeAsString();
             }

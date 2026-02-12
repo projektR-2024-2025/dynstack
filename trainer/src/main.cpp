@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
             IndividualP ind = (IndividualP) new Individual(state);
             ind->read(xInd);
             Simulator sim;
-            model->set_genotype((GenotypeP) ind->getGenotype().get());
+            model->set_genotype(ind->getGenotype());
             PriorityHeuristic heuristic(model);
             std::cout << "Running best individual" << std::endl;
             double score = run_simulation(sim, heuristic, Parameters::SIM_STEPS);
