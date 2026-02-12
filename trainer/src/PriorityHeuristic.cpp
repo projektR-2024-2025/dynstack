@@ -111,7 +111,7 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     double moved_ready = 0.0; //jeli blok koji smo pomakli ready
     double moved_tud = 0.0; //tud bloka kojeg smo pomakli
 
-    if (m.type == MoveType::ARRIVAL_TO_BUFFER && !before.arrival_stack.empty()) {
+    if ((m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER)&& !before.arrival_stack.empty()) {
         auto c = before.arrival_stack.top();
         moved_ready = c.is_ready(before.time);
         moved_tud = c.arrival_time + c.wait + c.overdue - before.time;
