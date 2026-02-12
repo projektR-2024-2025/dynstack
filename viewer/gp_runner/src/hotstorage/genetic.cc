@@ -383,15 +383,15 @@ namespace DynStacking {
             features.push_back(delta_arrival);
             features.push_back(delta_total_ready);
             features.push_back(delta_total_blocks);
-            features.push_back(delta_total_lateness);
+            features.push_back(delta_total_lateness/1000);
             features.push_back(delta_overdue_blocks);
             features.push_back(handover_ready_before);
             features.push_back(handover_ready_after);
             features.push_back(double(highest_emptying_priority_idx));
-            features.push_back(highest_emptying_priority_tud);
+            features.push_back(highest_emptying_priority_tud/1000);
 
             features.push_back(moved_ready);
-            features.push_back(moved_tud);
+            features.push_back(moved_tud/1000);
             features.push_back(src_size);
             features.push_back(src_ready);
             features.push_back(src_overdue);
