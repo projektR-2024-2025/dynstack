@@ -86,6 +86,7 @@ private:
 
     double evaluate_move(Simulator& sim, Move& m);
     std::vector<double> extract_features(const World& before, const World& after, Move& m);
+    std::vector<double> selection(std::vector<double> features);
 
     // Interne funkcije kandidata meta-algoritama.
 

@@ -51,6 +51,7 @@ public:
 	inline static int SIM_STEPS = 50;
 	// PriorityHeuristic
 	inline static int META_ALG = 0; // 0 default; 1,2,3 - kandidati
+	inline static std::string SELECTED_FEATURES;
 
 	static void readParameters(int argc, char** argv) {
 		if (argc != 2) {
@@ -103,6 +104,8 @@ public:
 			readParam(conf, SIM_STEPS, "Main", "SimulationSteps");
 
 			readParam(conf, META_ALG, "Main", "MetaAlg");
+
+			readParam(conf, SELECTED_FEATURES, "Main", "Feature_selection");
 		}
 	}
 };

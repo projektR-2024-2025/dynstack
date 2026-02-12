@@ -15,6 +15,7 @@
     </Registry>
 </ECF>
 <Conf>
+    <feature_selection>1 2 3 4 5 8 9 10 11 12 13 14 15 16 17 18 19</feature_selection>
     <Main> <!-- Glavne opcije za rad programa -->
         <BestFile>best.txt</BestFile>
         <RunBest>0</RunBest> <!-- Izvrti jednu simulaciju koristeci jedinku iz BestFile -->

@@ -198,6 +198,19 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     return features;
 }
 
+std::vector<double> PriorityHeuristic::selection(std::vector<double> features){
+    std::vector<double> selected;
+    std::istringstream ss(Parameters::SELECTED_FEATURES);
+    int idx;
+    //std::cout << "SELECTED_FEATURES='" << Parameters::SELECTED_FEATURES << "'" << std::endl; // debug
+    while (ss >> idx){
+        //std::cout << idx <<std::endl ;
+        if (idx >= 1 && idx <= (int)features.size())
+            selected.push_back(features[idx - 1]);
+    }
+    return selected ;
+}
+
 double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
 
     Simulator sim_copy = sim;
@@ -206,8 +219,9 @@ double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
     apply_move(sim_copy, m);
 
     World after = sim_copy.getWorld();
-    auto features = extract_features(before, after, m);
-
+    
+    auto features = selection(extract_features(before, after, m));
+    
     //for (size_t i = 0; i < terminals.size(); ++i) {
         //priority_tree->setterminalvalue(terminals[i], (void*)&features[i]);
     //}

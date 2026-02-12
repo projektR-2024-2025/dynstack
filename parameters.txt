@@ -2,7 +2,7 @@
     <Genotype>
         <Tree>
             <Entry key="functionset">+ - * / min max</Entry>
-            <Entry key="terminalset">t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15</Entry>
+            <Entry key="terminalset">t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 t17 t18 t19</Entry>
             <Entry key="mindepth">1</Entry>
             <Entry key="maxdepth">5</Entry>
         </Tree>
@@ -21,6 +21,7 @@
         <SimulationSteps>500</SimulationSteps> <!-- Broj koraka simulacije -->
         <PrintSteps>0</PrintSteps> <!-- Ispis svakog koraka u obliku teksta -->
         <MetaAlg>0</MetaAlg> <!-- Odabir meta-algoritma 0/1/2/3 -->
+        <Feature_selection>1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19</feature_selection>
     </Main>
     <KPI> <!-- KPI tezine -->
         <KpiW1>0.5</KpiW1>
