@@ -103,7 +103,7 @@ bool Simulator::move_arrival_to_buffer(int buffer_id) {
 
     KPI.crane_manipulations++;
     is_crane_avail = false;
-    made_move = true;
+    made_move = Parameters::CRANE_TIME;
     Container c = arrival_stack.top(); arrival_stack.pop();
     buffers[buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
@@ -131,7 +131,7 @@ bool Simulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id) {
     KPI.crane_manipulations++;
     Container c = buffers[from_buffer_id].top();
     is_crane_avail = false;
-    made_move = true;
+    made_move = Parameters::CRANE_TIME;
     buffers[from_buffer_id].pop();
     buffers[to_buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
@@ -167,7 +167,7 @@ bool Simulator::move_buffer_to_handover(int buffer_id) {
     KPI.delivered_blocks++;
     leadtime = time - c.arrival_time;
     is_crane_avail = false;
-    made_move = true;
+    made_move = Parameters::CRANE_TIME;
     buffers[buffer_id].pop();
     handover_stack.push(c);
     if (!c.is_overdue(time))
@@ -205,7 +205,7 @@ bool Simulator::move_arrival_to_handover() {
     KPI.delivered_blocks++;
     leadtime = time - c.arrival_time;
     is_crane_avail = false;
-    made_move = true;
+    made_move = Parameters::CRANE_TIME;
     arrival_stack.pop();
     handover_stack.push(c);
     if (!c.is_overdue(time))
@@ -234,7 +234,6 @@ void Simulator::print_status() {
 void Simulator::print_state() {
     World world = getWorld();
     std::cout << "\033[2J\033[H" << std::endl;
-    // std::system(CLEAR_TERM);
     for (int i = world.max_buffer_size; i >= 1; i--) {
         std::cout << std::left;
 
@@ -283,8 +282,8 @@ void Simulator::step() {
     generate_arrival();
     process_handover_top();
     ++time;
-    is_crane_avail = made_move ? false : true;
-    made_move = false;
+    is_crane_avail = (made_move > 0) ? false : true;
+    made_move--;
     calculate_KPI();
 }
 

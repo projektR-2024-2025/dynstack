@@ -43,6 +43,7 @@ public:
 	inline static int MAX_DUE_TIME = 90;
 	inline static float MIN_WAIT_FAC = 0.1;
 	inline static float MAX_WAIT_FAC = 0.3;
+	inline static int CRANE_TIME = 2;
 	inline static int ARRIVAL_PROB = 15; // /100
 	inline static int HANDOVER_PROB = 22; // /100
 	inline static bool SEED_SIM = true; // seedaj sim prije pokretanja
@@ -98,6 +99,7 @@ public:
 			readParam(conf, MAX_WAIT_FAC, "Simulator", "MaxWaitFactor");
 			readParam(conf, ARRIVAL_PROB, "Simulator", "ArrivalProbability");
 			readParam(conf, HANDOVER_PROB, "Simulator", "HandoverProbability");
+			readParam(conf, CRANE_TIME, "Simulator", "CraneTime");
 			readParam(conf, SEED_SIM, "Main", "SeedSimulator");
 			readParam(conf, SIMULATOR_SEED, "Main", "SimulatorSeed");
 
@@ -105,7 +107,7 @@ public:
 
 			readParam(conf, META_ALG, "Main", "MetaAlg");
 
-			readParam(conf, SELECTED_FEATURES, "Main", "Feature_selection");
+			readParam(conf, SELECTED_FEATURES, "Main", "FeatureSelection");
 		}
 	}
 };

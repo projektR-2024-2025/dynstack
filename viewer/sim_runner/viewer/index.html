@@ -6,6 +6,8 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #1a1a1a;
+            color: white;
         }
         #canvas {
             border: 1px solid #ccc;
@@ -43,12 +45,12 @@
 
         ws.onopen = () => {
             status.textContent = 'WebSocket: Connected';
-            status.style.backgroundColor = '#e0ffe0';
+            status.style.backgroundColor = '#4CAF50';
         };
 
         ws.onclose = () => {
             status.textContent = 'WebSocket: Disconnected';
-            status.style.backgroundColor = '#ffe0e0';
+            status.style.backgroundColor = '#ff4d4d';
         };
 
         ws.onmessage = (event) => {
@@ -98,7 +100,7 @@
             ctx.strokeStyle = colors.black;
             ctx.strokeRect(x, y, width, height);
 
-            ctx.fillStyle = colors.black;
+            ctx.fillStyle = colors.white;
             ctx.font = '12px Arial';
             ctx.fillText(label, x + 10, y + 20);
             ctx.fillText(time, x + 60, y + 20);
@@ -134,7 +136,7 @@
             const blockMargin = bounds.blockMargin;
             const stackY = canvas.height - (2*margin)
 
-            ctx.fillStyle = colors.black;
+            ctx.fillStyle = colors.white;
             ctx.font = '12px Arial';
             
             if (data.Production.BottomToTop) {

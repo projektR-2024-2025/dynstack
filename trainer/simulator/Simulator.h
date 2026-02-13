@@ -8,12 +8,6 @@
 
 #include "Parameters.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-    #define CLEAR_TERM "cls"  // Windows
-#else
-    #define CLEAR_TERM "clear" // Linux/macOS
-#endif
-
 struct Container {
     int id, wait, overdue, arrival_time;
     Container(int id, int w, int o, int t) : id(id), wait(w), overdue(o), arrival_time(t) {}
@@ -67,7 +61,7 @@ private:
     int delivered_on_time = 0;
     int leadtime = 0;
     bool is_crane_avail = true;
-    bool made_move = false;
+    int made_move = 0;
 
     void initalize_buffers();
     void generate_arrival();

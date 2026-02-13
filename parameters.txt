@@ -1,27 +1,27 @@
 <ECF>
     <Genotype>
         <Tree>
-            <Entry key="functionset">+ - * / min max</Entry>
-            <Entry key="terminalset">t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 t17 t18 t19</Entry>
+            <Entry key="functionset">+ - * / pos min max</Entry>
+            <Entry key="terminalset">t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 t17</Entry>
             <Entry key="mindepth">1</Entry>
-            <Entry key="maxdepth">5</Entry>
+            <Entry key="maxdepth">7</Entry>
         </Tree>
     </Genotype>
     <Registry>
-	    <Entry key="term.eval">3000</Entry>
+	    <Entry key="term.eval">10000</Entry>
         <Entry key="log.filename">log.txt</Entry>
     </Registry>
 </ECF>
 <Conf>
     <Main> <!-- Glavne opcije za rad programa -->
         <BestFile>best.txt</BestFile>
-        <RunBest>0</RunBest> <!-- Izvrti jednu simulaciju koristeci jedinku iz BestFile -->
+        <RunBest>1</RunBest> <!-- Izvrti jednu simulaciju koristeci jedinku iz BestFile -->
         <SeedSimulator>1</SeedSimulator> <!-- Ako 1 koristi se SimulatorSeed, inace nasumican seed -->
         <SimulatorSeed>4444</SimulatorSeed>
         <SimulationSteps>500</SimulationSteps> <!-- Broj koraka simulacije -->
         <PrintSteps>0</PrintSteps> <!-- Ispis svakog koraka u obliku teksta -->
-        <MetaAlg>0</MetaAlg> <!-- Odabir meta-algoritma 0/1/2/3 -->
-        <Feature_selection>1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19</feature_selection>
+        <MetaAlg>3</MetaAlg> <!-- Odabir meta-algoritma 0/1/2/3 -->
+        <FeatureSelection>1 2 3 4 8 9 10 11 12 13 14 15 16 17 18 19 21</FeatureSelection>
     </Main>
     <KPI> <!-- KPI tezine -->
         <KpiW1>0.5</KpiW1>
@@ -40,5 +40,6 @@
         <ArrivalProbability>15</ArrivalProbability>
         <HandoverProbability>22</HandoverProbability>
         <InitalizeBuffers>1</InitalizeBuffers>
+        <CraneTime>2</CraneTime>
     </Simulator>
 </Conf>
