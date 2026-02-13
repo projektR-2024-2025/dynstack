@@ -10,9 +10,9 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
 
     std::vector<double> features;
 
-    if (m.type == MoveType::NONE){
-        return std::vector<double>(27, 0.0);
-    }
+    // if (m.type == MoveType::NONE){
+    //     return std::vector<double>(27, 0.0);
+    // }
 
     //GLOBALNE (razlika prije i poslije poteza -> mozemo staviti samo poslije umjesto razlike ako zakljucimo da je tako bolje)
     double delta_arrival = double(after.arrival_stack.size() - before.arrival_stack.size());
@@ -112,50 +112,65 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     double highest_emptying_priority_tud = double(min_tud[highest_emptying_priority_idx]);
 
     //LOKALNE (VEZANE UZ POTEZ)
-    double moved_ready = 0.0; //jeli blok koji smo pomakli ready
-    double moved_tud = 0.0; //tud bloka kojeg smo pomakli
+    if (m.type != MoveType::NONE){
+        double moved_ready = 0.0; //jeli blok koji smo pomakli ready
+        double moved_tud = 0.0; //tud bloka kojeg smo pomakli
 
-    if ((m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER)&& !before.arrival_stack.empty()) {
-        auto c = before.arrival_stack.top();
-        moved_ready = c.is_ready(before.time);
-        moved_tud = c.arrival_time + c.wait + c.overdue - before.time;
-    }
-    if ((m.type == MoveType::BUFFER_TO_BUFFER || m.type == MoveType::BUFFER_TO_HANDOVER) && !before.buffers[m.from].empty()) {
-        auto c = before.buffers[m.from].top();
-        moved_ready = c.is_ready(before.time);
-        moved_tud = c.arrival_time + c.wait + c.overdue - before.time;
-    }
-    //src
-    std::stack<Container> src_stack;
-    src_stack = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.arrival_stack : before.buffers[m.from];
-
-    double src_size = double(src_stack.size());
-    double src_ready = 0.0; //koliko ima ready blokova na src
-    double src_overdue = 0.0; //koliko ima overdue blokova na src
-    while (!src_stack.empty()) {
-        if (src_stack.top().is_ready(before.time)) src_ready += 1.0;
-        if (src_stack.top().is_overdue(before.time)) src_overdue += 1.0;
-        src_stack.pop();
-    }
-    //dest
-    std::stack<Container> dest_stack;
-    dest_stack = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.handover_stack : before.buffers[m.to];
-    double dest_size = 0.0;
-    double dest_ready = 0.0;
-    double dest_overdue = 0.0;
-    dest_size = double(dest_stack.size());
-    if (!dest_stack.empty()) {
-        while (!dest_stack.empty()) {
-            if (dest_stack.top().is_ready(after.time)) dest_ready += 1.0;
-            if (dest_stack.top().is_overdue(after.time)) dest_overdue += 1.0;
-            dest_stack.pop();
+        if ((m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER)&& !before.arrival_stack.empty()) {
+            auto c = before.arrival_stack.top();
+            moved_ready = c.is_ready(before.time);
+            moved_tud = c.arrival_time + c.wait + c.overdue - before.time;
         }
-    }
+        if ((m.type == MoveType::BUFFER_TO_BUFFER || m.type == MoveType::BUFFER_TO_HANDOVER) && !before.buffers[m.from].empty()) {
+            auto c = before.buffers[m.from].top();
+            moved_ready = c.is_ready(before.time);
+            moved_tud = c.arrival_time + c.wait + c.overdue - before.time;
+        }
+        //src
+        std::stack<Container> src_stack;
+        src_stack = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.arrival_stack : before.buffers[m.from];
 
-    int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.from + 1 ;
-    int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.to + 1;
-    double src_emptying_priority = double(emptying_priority[src_idx]) ;
-    double dest_emptying_priority = double(emptying_priority[dest_idx]) ;
+        double src_size = double(src_stack.size());
+        double src_ready = 0.0; //koliko ima ready blokova na src
+        double src_overdue = 0.0; //koliko ima overdue blokova na src
+        while (!src_stack.empty()) {
+            if (src_stack.top().is_ready(before.time)) src_ready += 1.0;
+            if (src_stack.top().is_overdue(before.time)) src_overdue += 1.0;
+            src_stack.pop();
+        }
+        //dest
+        std::stack<Container> dest_stack;
+        dest_stack = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.handover_stack : before.buffers[m.to];
+        double dest_size = 0.0;
+        double dest_ready = 0.0;
+        double dest_overdue = 0.0;
+        dest_size = double(dest_stack.size());
+        if (!dest_stack.empty()) {
+            while (!dest_stack.empty()) {
+                if (dest_stack.top().is_ready(after.time)) dest_ready += 1.0;
+                if (dest_stack.top().is_overdue(after.time)) dest_overdue += 1.0;
+                dest_stack.pop();
+            }
+        }
+
+        int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.from + 1 ;
+        int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.to + 1;
+        double src_emptying_priority = double(emptying_priority[src_idx]) ;
+        double dest_emptying_priority = double(emptying_priority[dest_idx]) ;
+
+    }
+    else{
+        double moved_ready = 0;
+        double moved_tud = 0;
+        double src_size = 0;
+        double src_ready = 0;
+        double src_overdue = 0;
+        double src_emptying_priority = 0;
+        double dest_size = 0;
+        double dest_ready = 0;
+        double dest_overdue = 0;
+        double dest_emptying_priority=0;
+    }
 
     // razlika u kpi-jevima
     const KPI_t& kb = before.KPI;

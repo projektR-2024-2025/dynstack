@@ -215,7 +215,7 @@ namespace DynStacking {
             if (m.type == MoveType::NONE){
                 return std::vector<double>(27, 0.0);
             }
-            
+
             auto now_before = before.now().milliseconds();
             auto now_after  = after.now().milliseconds();
 
@@ -327,51 +327,64 @@ namespace DynStacking {
                     }
                 }
             }
-            double moved_ready = moved && moved->ready() ? 1.0 : 0.0 ;
-            double moved_tud = moved ? double(moved->due().milliseconds() - now_before) : 0.0 ;
+            if (m.type == MoveType::NONE){
+                double moved_ready = moved && moved->ready() ? 1.0 : 0.0 ;
+                double moved_tud = moved ? double(moved->due().milliseconds() - now_before) : 0.0 ;
 
-            double src_size = 0.0;
-            double src_ready = 0.0;
-            double src_overdue = 0.0;
-            if (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER){
-                src_size = double(before.production().bottomtotop_size());
-                for (const auto& b : before.production().bottomtotop()){
-                    if (b.ready()) src_ready++;
-                    if (now_before > b.due().milliseconds()) src_overdue++;
-                }
-            }
-            else if (m.source >= 0) {
-                for (const auto& s : before.buffers()) {
-                    if (s.id() == m.source) {
-                        src_size = double(s.bottomtotop_size());
-                        for (const auto& b : s.bottomtotop()) {
-                            if (b.ready()) src_ready++;
-                            if (now_before > b.due().milliseconds()) src_overdue++;
-                        }
-                        break;
+                double src_size = 0.0;
+                double src_ready = 0.0;
+                double src_overdue = 0.0;
+                if (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER){
+                    src_size = double(before.production().bottomtotop_size());
+                    for (const auto& b : before.production().bottomtotop()){
+                        if (b.ready()) src_ready++;
+                        if (now_before > b.due().milliseconds()) src_overdue++;
                     }
                 }
-            }
-            double dest_size = 0.0;
-            double dest_ready = 0.0;
-            double dest_overdue = 0.0;
-            if (m.target >= 0) {
-                for (const auto& s : after.buffers()) {
-                    if (s.id() == m.target) {
-                        dest_size = double(s.bottomtotop_size());
-                        for (const auto& b : s.bottomtotop()) {
-                            if (b.ready()) dest_ready++;
-                            if (now_after > b.due().milliseconds()) dest_overdue++;
+                else if (m.source >= 0) {
+                    for (const auto& s : before.buffers()) {
+                        if (s.id() == m.source) {
+                            src_size = double(s.bottomtotop_size());
+                            for (const auto& b : s.bottomtotop()) {
+                                if (b.ready()) src_ready++;
+                                if (now_before > b.due().milliseconds()) src_overdue++;
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
+                double dest_size = 0.0;
+                double dest_ready = 0.0;
+                double dest_overdue = 0.0;
+                if (m.target >= 0) {
+                    for (const auto& s : after.buffers()) {
+                        if (s.id() == m.target) {
+                            dest_size = double(s.bottomtotop_size());
+                            for (const auto& b : s.bottomtotop()) {
+                                if (b.ready()) dest_ready++;
+                                if (now_after > b.due().milliseconds()) dest_overdue++;
+                            }
+                            break;
+                        }
+                    }
+                }
+                int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.source + 1;
+                int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.target + 1;
+                double src_emptying_priority  = emptying_priority[src_idx];
+                double dest_emptying_priority = emptying_priority[dest_idx];
             }
-
-            int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.source + 1;
-            int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.target + 1;
-            double src_emptying_priority  = emptying_priority[src_idx];
-            double dest_emptying_priority = emptying_priority[dest_idx];
+            else{
+                double moved_ready = 0;
+                double moved_tud = 0;
+                double src_size = 0;
+                double src_ready = 0;
+                double src_overdue = 0;
+                double src_emptying_priority = 0;
+                double dest_size = 0;
+                double dest_ready = 0;
+                double dest_overdue = 0;
+                double dest_emptying_priority=0;
+            }
 
             //delta kpi
             const auto& kb = before.kpis();
