@@ -166,7 +166,7 @@ namespace DynStacking {
                 // ARRIVAL -> HANDOVER
                 if (w.production().bottomtotop_size() > 0){ //if (!w.arrival_stack.empty()) 
                     const Block& top = w.production().bottomtotop(w.production().bottomtotop_size() - 1);
-                    if (top.ready() && !w.handover().ready()){
+                    if (top.ready() && w.handover().ready()){
                         moves.push_back(Move{MoveType::ARRIVAL_TO_HANDOVER, -1, -1});
                     }
                 }
@@ -211,6 +211,11 @@ namespace DynStacking {
 
         std::vector<double> extract_features(const World& before, const World& after, const Move& m) {
             std::vector<double> features;
+
+            if (m.type == MoveType::NONE){
+                return std::vector<double>(27, 0.0);
+            }
+            
             auto now_before = before.now().milliseconds();
             auto now_after  = after.now().milliseconds();
 
