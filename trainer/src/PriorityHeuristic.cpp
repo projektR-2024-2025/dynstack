@@ -112,9 +112,19 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     double highest_emptying_priority_tud = double(min_tud[highest_emptying_priority_idx]);
 
     //LOKALNE (VEZANE UZ POTEZ)
+    double moved_ready = 0;
+    double moved_tud = 0;
+    double src_size = 0;
+    double src_ready = 0;
+    double src_overdue = 0;
+    double src_emptying_priority = 0;
+    double dest_size = 0;
+    double dest_ready = 0;
+    double dest_overdue = 0;
+    double dest_emptying_priority=0;
     if (m.type != MoveType::NONE){
-        double moved_ready = 0.0; //jeli blok koji smo pomakli ready
-        double moved_tud = 0.0; //tud bloka kojeg smo pomakli
+        moved_ready = 0.0; //jeli blok koji smo pomakli ready
+        moved_tud = 0.0; //tud bloka kojeg smo pomakli
 
         if ((m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER)&& !before.arrival_stack.empty()) {
             auto c = before.arrival_stack.top();
@@ -130,9 +140,9 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
         std::stack<Container> src_stack;
         src_stack = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.arrival_stack : before.buffers[m.from];
 
-        double src_size = double(src_stack.size());
-        double src_ready = 0.0; //koliko ima ready blokova na src
-        double src_overdue = 0.0; //koliko ima overdue blokova na src
+        src_size = double(src_stack.size());
+        src_ready = 0.0; //koliko ima ready blokova na src
+        src_overdue = 0.0; //koliko ima overdue blokova na src
         while (!src_stack.empty()) {
             if (src_stack.top().is_ready(before.time)) src_ready += 1.0;
             if (src_stack.top().is_overdue(before.time)) src_overdue += 1.0;
@@ -141,9 +151,9 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
         //dest
         std::stack<Container> dest_stack;
         dest_stack = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.handover_stack : before.buffers[m.to];
-        double dest_size = 0.0;
-        double dest_ready = 0.0;
-        double dest_overdue = 0.0;
+        dest_size = 0.0;
+        dest_ready = 0.0;
+        dest_overdue = 0.0;
         dest_size = double(dest_stack.size());
         if (!dest_stack.empty()) {
             while (!dest_stack.empty()) {
@@ -155,21 +165,8 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
 
         int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.from + 1 ;
         int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.to + 1;
-        double src_emptying_priority = double(emptying_priority[src_idx]) ;
-        double dest_emptying_priority = double(emptying_priority[dest_idx]) ;
-
-    }
-    else{
-        double moved_ready = 0;
-        double moved_tud = 0;
-        double src_size = 0;
-        double src_ready = 0;
-        double src_overdue = 0;
-        double src_emptying_priority = 0;
-        double dest_size = 0;
-        double dest_ready = 0;
-        double dest_overdue = 0;
-        double dest_emptying_priority=0;
+        src_emptying_priority = double(emptying_priority[src_idx]) ;
+        dest_emptying_priority = double(emptying_priority[dest_idx]) ;
     }
 
     // razlika u kpi-jevima

@@ -317,23 +317,36 @@ namespace DynStacking {
 
             const Block* moved = nullptr;
 
-            if ((m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER)&& before.production().bottomtotop_size() > 0) {
+            double moved_ready = 0;
+            double moved_tud = 0;
+            double src_size = 0;
+            double src_ready = 0;
+            double src_overdue = 0;
+            double src_emptying_priority = 0;
+            double dest_size = 0;
+            double dest_ready = 0;
+            double dest_overdue = 0;
+            double dest_emptying_priority=0;
+            if (m.type != MoveType::NONE){
+
+                if ((m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER)&& before.production().bottomtotop_size() > 0) {
                 moved = &before.production().bottomtotop(before.production().bottomtotop_size() - 1);
-            } else if (m.source >= 0) {
-                for (const auto& s : before.buffers()) {
-                    if (s.id() == m.source && s.bottomtotop_size() > 0) {
-                        moved = &s.bottomtotop(s.bottomtotop_size() - 1);
-                        break;
+                } 
+                else if (m.source >= 0) {
+                    for (const auto& s : before.buffers()) {
+                        if (s.id() == m.source && s.bottomtotop_size() > 0) {
+                            moved = &s.bottomtotop(s.bottomtotop_size() - 1);
+                            break;
+                        }
                     }
                 }
-            }
-            if (m.type == MoveType::NONE){
-                double moved_ready = moved && moved->ready() ? 1.0 : 0.0 ;
-                double moved_tud = moved ? double(moved->due().milliseconds() - now_before) : 0.0 ;
 
-                double src_size = 0.0;
-                double src_ready = 0.0;
-                double src_overdue = 0.0;
+                moved_ready = moved && moved->ready() ? 1.0 : 0.0 ;
+                moved_tud = moved ? double(moved->due().milliseconds() - now_before) : 0.0 ;
+
+                src_size = 0.0;
+                src_ready = 0.0;
+                src_overdue = 0.0;
                 if (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER){
                     src_size = double(before.production().bottomtotop_size());
                     for (const auto& b : before.production().bottomtotop()){
@@ -353,9 +366,9 @@ namespace DynStacking {
                         }
                     }
                 }
-                double dest_size = 0.0;
-                double dest_ready = 0.0;
-                double dest_overdue = 0.0;
+                dest_size = 0.0;
+                dest_ready = 0.0;
+                dest_overdue = 0.0;
                 if (m.target >= 0) {
                     for (const auto& s : after.buffers()) {
                         if (s.id() == m.target) {
@@ -370,21 +383,10 @@ namespace DynStacking {
                 }
                 int src_idx  = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 0 : m.source + 1;
                 int dest_idx = (m.type == MoveType::BUFFER_TO_HANDOVER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? 4 : m.target + 1;
-                double src_emptying_priority  = emptying_priority[src_idx];
-                double dest_emptying_priority = emptying_priority[dest_idx];
+                src_emptying_priority  = emptying_priority[src_idx];
+                dest_emptying_priority = emptying_priority[dest_idx];
             }
-            else{
-                double moved_ready = 0;
-                double moved_tud = 0;
-                double src_size = 0;
-                double src_ready = 0;
-                double src_overdue = 0;
-                double src_emptying_priority = 0;
-                double dest_size = 0;
-                double dest_ready = 0;
-                double dest_overdue = 0;
-                double dest_emptying_priority=0;
-            }
+
 
             //delta kpi
             const auto& kb = before.kpis();
