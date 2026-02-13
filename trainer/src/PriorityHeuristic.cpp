@@ -10,6 +10,10 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
 
     std::vector<double> features;
 
+    if (m.type == MoveType::NONE){
+        return std::vector<double>(27, 0.0);
+    }
+
     //GLOBALNE (razlika prije i poslije poteza -> mozemo staviti samo poslije umjesto razlike ako zakljucimo da je tako bolje)
     double delta_arrival = double(after.arrival_stack.size() - before.arrival_stack.size());
 
