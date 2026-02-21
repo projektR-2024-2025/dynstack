@@ -29,12 +29,12 @@ public:
 	inline static bool RUN_BEST = false;
 	inline static int MODEL = -1; // 0 - GP; 1 - CGP
 	// Runner
-	inline static float KPI_W1 = 0.5;
-	inline static float KPI_W2 = -0.4;
-	inline static float KPI_W3 = 0.1;
+	inline static std::string KPI_WEIGHTS;
+	inline static int STEP_DURATION = 400;
 	// Simulator
 	inline static bool PRINT_STEPS = false;
 	inline static bool INITALIZE_BUFFERS = true;
+	inline static int BUFFER_COUNT = 3;
 	inline static int MAX_ARRIVAL_SIZE = 3;
 	inline static int MAX_BUFFER_SIZE = 12;
 	inline static int MIN_INIT_BUFFER = 3;
@@ -83,12 +83,12 @@ public:
 			readParam(conf, RUN_BEST, "Main", "RunBest");
 			readParam(conf, BEST_FILE, "Main", "BestFile");
 
-			readParam(conf, KPI_W1, "KPI", "KpiW1");
-			readParam(conf, KPI_W2, "KPI", "KpiW2");
-			readParam(conf, KPI_W3, "KPI", "KpiW3");
+			readParam(conf, KPI_WEIGHTS, "KPI", "Weights");
+			readParam(conf, STEP_DURATION, "Main", "StepDuration");
 
 			readParam(conf, PRINT_STEPS, "Main", "PrintSteps");
 			readParam(conf, INITALIZE_BUFFERS, "Simulator", "InitalizeBuffers");
+			readParam(conf, BUFFER_COUNT, "Simulator", "BufferCount");
 			readParam(conf, MAX_ARRIVAL_SIZE, "Simulator", "MaxArrivalSize");
 			readParam(conf, MAX_BUFFER_SIZE, "Simulator", "MaxBufferSize");
 			readParam(conf, MIN_INIT_BUFFER, "Simulator", "MinInitialBuffer");

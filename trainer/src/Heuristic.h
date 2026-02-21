@@ -36,9 +36,9 @@ struct Move {
                 std::cout << std::left << std::string(15 * (to + 1), ' ') << "<" << std::string(15 * (from - to), '-') << std::endl;
         }
         else if (type == MoveType::BUFFER_TO_HANDOVER)
-            std::cout << std::left << std::string(15 * (from + 1), ' ') << std::string(15 * (3 - from), '-') << ">" << std::endl;
+            std::cout << std::left << std::string(15 * (from + 1), ' ') << std::string(15 * (Parameters::BUFFER_COUNT - from), '-') << ">" << std::endl;
         else if (type == MoveType::ARRIVAL_TO_HANDOVER)
-            std::cout << std::left << std::string(15 * 4, '-') << ">" << std::endl;
+            std::cout << std::left << std::string(15 * (Parameters::BUFFER_COUNT + 1), '-') << ">" << std::endl;
         else
             std::cout << std::endl;
     }

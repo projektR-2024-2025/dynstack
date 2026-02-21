@@ -16,12 +16,24 @@ static double run_simulation(Simulator& sim, AbstractHeuristic& heuristic, int m
             sim.print_state();
             m.print_move();
             sim.print_status();
-            std::this_thread::sleep_for(std::chrono::milliseconds(400));
+            std::this_thread::sleep_for(std::chrono::milliseconds(Parameters::STEP_DURATION));
         }
         sim.step();
     }
     World w = sim.getWorld();
-    return Parameters::KPI_W1 * w.KPI.blocked_arrival + Parameters::KPI_W2 * w.KPI.blocks_on_time + Parameters::KPI_W3 * w.KPI.crane_manipulations;
+
+    double weights[KPIs] = {};
+    std::istringstream ss(Parameters::KPI_WEIGHTS);
+    double weight;
+    int curr = 0;
+    while (ss >> weight){
+        weights[curr] = weight;
+        curr++;
+        if (curr >= KPIs)
+            break;
+    }
+    return weights[0] * w.KPI.blocked_arrival + weights[1] * w.KPI.blocks_on_time + weights[2] * w.KPI.crane_manipulations + weights[3] * w.KPI.delivered_blocks +
+        weights[4] * w.KPI.leadtime + weights[5] * w.KPI.service_level + weights[6] * w.KPI.buffer_util + weights[7] * w.KPI.handover_util;
 }
 
 #endif

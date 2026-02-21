@@ -1,5 +1,4 @@
 #include <ECF/ECF.h>
-#include "WriteBest.h"
 #include "Parameters.h"
 #include "SeedSimulator.h"
 #include "Heuristic.h"
@@ -30,7 +29,6 @@ int main(int argc, char** argv) {
         }
 
         state->setEvalOp(model);
-        state->addOperator((OperatorP) new WriteBest);
         state->addOperator((OperatorP) new SeedSimulator);
         state->initialize(argc, argv);
 

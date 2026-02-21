@@ -26,7 +26,7 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     double overdue_before = 0.0;
     double overdue_after = 0.0;
 
-    for (int b = 0; b < 3; ++b) {
+    for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
         blocks_before += before.buffers[b].size();
         blocks_after += after.buffers[b].size();
         auto tmp = before.buffers[b];
@@ -55,19 +55,20 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     double handover_ready_after = after.handover_stack.empty();
 
     //stack rankings
+    int tud_cnt = Parameters::BUFFER_COUNT + 2;
     const double TUD_EPS = 1.0;
-    double min_tud[5];
-    double avg_tud[5];
-    bool empty[5];
-    for (int i = 0; i < 5; ++i) {
+    double min_tud[tud_cnt];
+    double avg_tud[tud_cnt];
+    bool empty[tud_cnt];
+    for (int i = 0; i < tud_cnt; ++i) {
         min_tud[i] = std::numeric_limits<double>::infinity();
         avg_tud[i] = std::numeric_limits<double>::infinity();
         empty[i] = true;
     }
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < tud_cnt; ++i) {
         std::stack<Container> s;
         if (i == 0) s = before.arrival_stack;
-        else if (i >= 1 && i <= 3) s = before.buffers[i - 1];
+        else if (i >= 1 && i <= Parameters::BUFFER_COUNT) s = before.buffers[i - 1];
         else s = before.handover_stack;
         if (s.empty()) continue;
         double sum = 0.0;
@@ -86,9 +87,9 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
             avg_tud[i] = sum / cnt;
         empty[i] = false;
     }
-    int emptying_priority[5] = {0, 0, 0, 0, 0}; //svaki stack ima svoj prioritet praznjenja ovisno o tome koliki je najmanji tud
-    for (int i = 0; i < 5; ++i) {
-        for (int j = 0; j < 5; ++j) {
+    int emptying_priority[tud_cnt] = { }; //svaki stack ima svoj prioritet praznjenja ovisno o tome koliki je najmanji tud
+    for (int i = 0; i < tud_cnt; ++i) {
+        for (int j = 0; j < tud_cnt; ++j) {
             if (i == j) continue;
             if (!empty[i] && empty[j]) {
                 emptying_priority[i]++;
@@ -106,7 +107,7 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
         }
     }
     int highest_emptying_priority_idx = 0;
-    for (int i = 1; i < 5; ++i)
+    for (int i = 1; i < tud_cnt; ++i)
         if (emptying_priority[i] > emptying_priority[highest_emptying_priority_idx])
             highest_emptying_priority_idx = i;
     double highest_emptying_priority_tud = double(min_tud[highest_emptying_priority_idx]);
@@ -224,7 +225,7 @@ std::vector<double> PriorityHeuristic::selection(std::vector<double> features){
         if (idx >= 1 && idx <= (int)features.size())
             selected.push_back(features[idx - 1]);
     }
-    return selected ;
+    return selected;
 }
 
 double PriorityHeuristic::evaluate_move(Simulator& sim, Move& m) {
@@ -271,7 +272,7 @@ std::vector<Move> PriorityHeuristic::possible_moves(Simulator& sim) {
     World w = sim.getWorld();
 
     if (!w.arrival_stack.empty()) {
-        for (int b = 0; b < 3; ++b) {
+        for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (w.buffers[b].size() < w.max_buffer_size) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
             }
@@ -280,7 +281,7 @@ std::vector<Move> PriorityHeuristic::possible_moves(Simulator& sim) {
     else {
         moves.push_back(Move{ MoveType::NONE, -1, -1 });
         // BUFFER -> HANDOVER
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
             if (!w.buffers[i].empty()) {
 
                 Container& top = w.buffers[i].top();
@@ -290,9 +291,9 @@ std::vector<Move> PriorityHeuristic::possible_moves(Simulator& sim) {
             }
         }
         // BUFFER -> BUFFER
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
             if (!w.buffers[i].empty()) {
-                for (int j = 0; j < 3; ++j) {
+                for (int j = 0; j < Parameters::BUFFER_COUNT; ++j) {
                     if (i != j && w.buffers[j].size() < w.max_buffer_size) {
                         moves.push_back(Move{ MoveType::BUFFER_TO_BUFFER, i, j });
                     }
@@ -328,7 +329,7 @@ std::vector<Move> PriorityHeuristic::meta_alg_1(Simulator& sim) {
     World w = sim.getWorld();
 
     if (w.max_arrival_size - w.arrival_stack.size() <= 1) {
-        for (int b = 0; b < 3; ++b) {
+        for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (w.buffers[b].size() < w.max_buffer_size) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
             }
@@ -339,14 +340,14 @@ std::vector<Move> PriorityHeuristic::meta_alg_1(Simulator& sim) {
         moves.push_back(Move{ MoveType::NONE, -1, -1 });
 
         // ARRIVAL -> BUFFER
-        for (int b = 0; b < 3; ++b) {
+        for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (w.buffers[b].size() < w.max_buffer_size) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
             }
         }
 
         // BUFFER -> HANDOVER
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
             if (!w.buffers[i].empty()) {
 
                 Container& top = w.buffers[i].top();
@@ -357,9 +358,9 @@ std::vector<Move> PriorityHeuristic::meta_alg_1(Simulator& sim) {
         }
 
         // BUFFER -> BUFFER
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
             if (!w.buffers[i].empty()) {
-                for (int j = 0; j < 3; ++j) {
+                for (int j = 0; j < Parameters::BUFFER_COUNT; ++j) {
                     if (i != j && w.buffers[j].size() < w.max_buffer_size) {
                         moves.push_back(Move{ MoveType::BUFFER_TO_BUFFER, i, j });
                     }
@@ -376,7 +377,7 @@ std::vector<Move> PriorityHeuristic::meta_alg_2(Simulator& sim) {
     World w = sim.getWorld();
 
     if (w.arrival_stack.size() > 1) {
-        for (int b = 0; b < 3; ++b) {
+        for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (w.buffers[b].size() < w.max_buffer_size) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
             }
@@ -388,7 +389,7 @@ std::vector<Move> PriorityHeuristic::meta_alg_2(Simulator& sim) {
 
         // ARRIVAL -> BUFFER
         if (w.arrival_stack.size() == 1) {
-            for (int b = 0; b < 3; ++b) {
+            for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
                 if (w.buffers[b].size() < w.max_buffer_size) {
                     moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
                 }
@@ -396,7 +397,7 @@ std::vector<Move> PriorityHeuristic::meta_alg_2(Simulator& sim) {
         }
 
         // BUFFER -> HANDOVER
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
             if (!w.buffers[i].empty()) {
 
                 Container& top = w.buffers[i].top();
@@ -407,9 +408,9 @@ std::vector<Move> PriorityHeuristic::meta_alg_2(Simulator& sim) {
         }
 
         // BUFFER -> BUFFER
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
             if (!w.buffers[i].empty()) {
-                for (int j = 0; j < 3; ++j) {
+                for (int j = 0; j < Parameters::BUFFER_COUNT; ++j) {
                     if (i != j && w.buffers[j].size() < w.max_buffer_size) {
                         moves.push_back(Move{ MoveType::BUFFER_TO_BUFFER, i, j });
                     }
@@ -425,7 +426,7 @@ std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
     World w = sim.getWorld();
 
     if (w.arrival_stack.size() > 1) {
-        for (int b = 0; b < 3; ++b) {
+        for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (w.buffers[b].size() < w.max_buffer_size) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
             }
@@ -445,7 +446,7 @@ std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_HANDOVER, -1, -1 });
             }
         }
-        for (int b = 0; b < 3; ++b) {
+        for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (!w.buffers[b].empty()) {
                 Container& top = w.buffers[b].top();
                 if (top.is_ready(w.time) && w.handover_stack.empty()) {
@@ -463,7 +464,7 @@ std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
 
         // ARRIVAL -> BUFFER
         if (w.arrival_stack.size() == 1) {
-            for (int b = 0; b < 3; ++b) {
+            for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
                 if (w.buffers[b].size() < w.max_buffer_size) {
                     moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
                 }
@@ -471,9 +472,9 @@ std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
         }
 
         // BUFFER -> BUFFER
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
             if (!w.buffers[i].empty()) {
-                for (int j = 0; j < 3; ++j) {
+                for (int j = 0; j < Parameters::BUFFER_COUNT; ++j) {
                     if (i != j && w.buffers[j].size() < w.max_buffer_size) {
                         moves.push_back(Move{ MoveType::BUFFER_TO_BUFFER, i, j });
                     }

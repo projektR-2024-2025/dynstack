@@ -1,7 +1,7 @@
 #include "Simulator.h"
 
 void Simulator::initalize_buffers() {
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
         std::uniform_int_distribution<> buff_dist(Parameters::MIN_INIT_BUFFER, Parameters::MAX_INIT_BUFFER);
         for (int j = 0; j < buff_dist(rng); j++) {
             std::uniform_int_distribution<> due_dist(Parameters::MIN_DUE_TIME, Parameters::MAX_DUE_TIME);
@@ -55,7 +55,7 @@ void Simulator::calculate_KPI() {
     }
 
     KPI.buffer_util = 0;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < Parameters::BUFFER_COUNT; i++) {
         KPI.buffer_util += static_cast<double>(world.buffers[i].size()) / Parameters::MAX_BUFFER_SIZE;
         while (!world.buffers[i].empty()) {
             if(!world.buffers[i].top().is_overdue(time))
@@ -64,7 +64,7 @@ void Simulator::calculate_KPI() {
             total_blocks++;
         }
     }
-    KPI.buffer_util /= 3;
+    KPI.buffer_util /= Parameters::BUFFER_COUNT;
 
     if (leadtime)
         KPI.leadtime -= static_cast<double>(KPI.leadtime - leadtime) / KPI.delivered_blocks;
@@ -75,12 +75,16 @@ void Simulator::calculate_KPI() {
 
 Simulator::Simulator() {
     rng.seed(Simulator::seed);
+    for (int i = 0; i < Parameters::BUFFER_COUNT; i++) {
+        std::stack<Container> stck;
+        buffers.push_back(stck);
+    }
     if (Parameters::INITALIZE_BUFFERS)
         this->initalize_buffers();
 }
 
 World Simulator::getWorld() {
-    return World{ time, arrival_stack, handover_stack, {buffers[0], buffers[1], buffers[2]}, Parameters::MAX_ARRIVAL_SIZE, Parameters::MAX_BUFFER_SIZE, KPI };
+    return World{ time, arrival_stack, handover_stack, buffers, Parameters::MAX_ARRIVAL_SIZE, Parameters::MAX_BUFFER_SIZE, KPI };
 }
 
 // Manual move instructions
@@ -95,7 +99,7 @@ bool Simulator::move_arrival_to_buffer(int buffer_id) {
             std::cout << "Arrival stack empty!" << std::endl;
         return false;
     }
-    if (buffer_id < 0 || buffer_id > 2 || static_cast<int>(buffers[buffer_id].size()) >= Parameters::MAX_BUFFER_SIZE) {
+    if (buffer_id < 0 || buffer_id > (Parameters::BUFFER_COUNT - 1) || static_cast<int>(buffers[buffer_id].size()) >= Parameters::MAX_BUFFER_SIZE) {
         if (Parameters::PRINT_STEPS)
             std::cout << "Invalid buffer or full!" << std::endl;
         return false;
@@ -103,7 +107,7 @@ bool Simulator::move_arrival_to_buffer(int buffer_id) {
 
     KPI.crane_manipulations++;
     is_crane_avail = false;
-    made_move = Parameters::CRANE_TIME;
+    made_move = buffer_id + 1;
     Container c = arrival_stack.top(); arrival_stack.pop();
     buffers[buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
@@ -117,12 +121,12 @@ bool Simulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id) {
             std::cout << "Crane is not available!" << std::endl;
         return false;
     }
-    if (from_buffer_id < 0 || from_buffer_id > 2 || buffers[from_buffer_id].empty()) {
+    if (from_buffer_id < 0 || from_buffer_id > (Parameters::BUFFER_COUNT - 1) || buffers[from_buffer_id].empty()) {
         if (Parameters::PRINT_STEPS)
             std::cout << "Invalid/empty source buffer!" << std::endl;
         return false;
     }
-    if (to_buffer_id < 0 || to_buffer_id > 2 || static_cast<int>(buffers[to_buffer_id].size()) >= Parameters::MAX_BUFFER_SIZE) {
+    if (to_buffer_id < 0 || to_buffer_id > (Parameters::BUFFER_COUNT - 1) || static_cast<int>(buffers[to_buffer_id].size()) >= Parameters::MAX_BUFFER_SIZE) {
         if (Parameters::PRINT_STEPS)
             std::cout << "Invalid/full destination buffer!" << std::endl;
         return false;
@@ -131,7 +135,7 @@ bool Simulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id) {
     KPI.crane_manipulations++;
     Container c = buffers[from_buffer_id].top();
     is_crane_avail = false;
-    made_move = Parameters::CRANE_TIME;
+    made_move = abs(from_buffer_id - to_buffer_id);
     buffers[from_buffer_id].pop();
     buffers[to_buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
@@ -145,7 +149,7 @@ bool Simulator::move_buffer_to_handover(int buffer_id) {
             std::cout << "Crane is not available!" << std::endl;
         return false;
     }
-    if (buffer_id < 0 || buffer_id > 2 || buffers[buffer_id].empty()) {
+    if (buffer_id < 0 || buffer_id > (Parameters::BUFFER_COUNT - 1) || buffers[buffer_id].empty()) {
         if (Parameters::PRINT_STEPS)
             std::cout << "Invalid/empty buffer!" << std::endl;
         return false;
@@ -167,7 +171,7 @@ bool Simulator::move_buffer_to_handover(int buffer_id) {
     KPI.delivered_blocks++;
     leadtime = time - c.arrival_time;
     is_crane_avail = false;
-    made_move = Parameters::CRANE_TIME;
+    made_move = Parameters::BUFFER_COUNT - buffer_id;
     buffers[buffer_id].pop();
     handover_stack.push(c);
     if (!c.is_overdue(time))
@@ -205,7 +209,7 @@ bool Simulator::move_arrival_to_handover() {
     KPI.delivered_blocks++;
     leadtime = time - c.arrival_time;
     is_crane_avail = false;
-    made_move = Parameters::CRANE_TIME;
+    made_move = Parameters::BUFFER_COUNT + 1;
     arrival_stack.pop();
     handover_stack.push(c);
     if (!c.is_overdue(time))
@@ -218,13 +222,16 @@ bool Simulator::move_arrival_to_handover() {
 void Simulator::print_status() {
     std::cout << "\n--- Status at time " << time << " (Delivered: " << KPI.delivered_blocks << ") ---\n";
     std::cout << "Arrival: " << arrival_stack.size() << " | ";
-    std::cout << "Buffers: [" << buffers[0].size() << "," << buffers[1].size() << "," << buffers[2].size() << "] | ";
-    std::cout << "Handover: " << handover_stack.size() << std::endl;
+    std::cout << "Buffers: [";
+    for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
+        std::cout << buffers[i].size() << ",";
+    }
+    std::cout << "] | " << "Handover: " << handover_stack.size() << std::endl;
 
     // Show tops
     if (!arrival_stack.empty()) std::cout << "Arrival top: #" << arrival_stack.top().id << " ";
-    for (int i = 0; i < 3; ++i) {
-        if (!buffers[i].empty()) std::cout << "B" << i << ": #" << buffers[i].top().id << " ";
+    for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
+        if (!buffers[i].empty()) std::cout << "B" << i + 1 << ": #" << buffers[i].top().id << " ";
     }
     if (!handover_stack.empty()) std::cout << "Handover: #" << handover_stack.top().id;
     std::cout << std::endl << "KPI values: ";
@@ -249,7 +256,7 @@ void Simulator::print_state() {
         else
             std::cout << std::left << std::string(15, ' ');
 
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < Parameters::BUFFER_COUNT; j++) {
             if (i <= world.buffers[j].size()) {
                 if (world.buffers[j].top().is_ready(world.time))
                     std::cout << "\033[1;32m";
@@ -271,8 +278,10 @@ void Simulator::print_state() {
         std::cout << std::endl;
     }
 
-    std::cout << std::left << std::setw(15) << "Arrival" << std::setw(15) << "Buffer 1"
-        << std::setw(15) << "Buffer 2" << std::setw(15) << "Buffer 3";
+    std::cout << std::left << std::setw(15) << "Arrival";
+    for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
+        std::cout << "Buffer " << std::setw(8) << i + 1;
+    }
     if (world.handover_stack.empty())
         std::cout << "\033[1;32m";
     std::cout << std::setw(15) << "Handover" << "\033[0m" << std::endl;

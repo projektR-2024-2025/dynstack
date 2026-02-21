@@ -12,7 +12,7 @@ bool CustomHeuristic::has_free_space(World& w, int buffer_id) {
 int CustomHeuristic::buffer_with_least_ready(World& w) {
     int best = -1;
     int best_cnt = -1;
-    for (int b = 0; b < 3; ++b) {
+    for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
         if (!has_free_space(w, b)) continue;
         int cnt = 0;
         auto tmp = w.buffers[b];
@@ -32,7 +32,7 @@ int CustomHeuristic::buffer_with_least_ready(World& w) {
 int CustomHeuristic::best_ready_on_top(World& w) {
     int best = -1;
     long long best_tud =-1;
-    for (int b = 0; b < 3; ++b) {
+    for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
         if (w.buffers[b].empty()) continue;
         Container& top = w.buffers[b].top();
         if (!top.is_ready(w.time)) continue;
@@ -48,7 +48,7 @@ int CustomHeuristic::best_ready_on_top(World& w) {
 bool CustomHeuristic::covered_ready_block(World& w, CoveredReady& out) {
     bool found = false;
     int best_depth = 0;
-    for (int b = 0; b < 3; ++b) {
+    for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
         auto tmp = w.buffers[b];
         int depth = 0;
         if (tmp.empty()) continue;
@@ -74,7 +74,7 @@ bool CustomHeuristic::covered_ready_block(World& w, CoveredReady& out) {
 int CustomHeuristic::buffer_without_ready_on_top(World& w, int forbidden) {
     int best = -1;
     int best_size = -1;
-    for (int b = 0; b < 3; ++b) {
+    for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
         if (b == forbidden) continue;
         if (!has_free_space(w, b)) continue;
         if (!w.buffers[b].empty() &&

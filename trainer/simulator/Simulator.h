@@ -5,8 +5,11 @@
 #include <random>
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 #include "Parameters.h"
+
+#define KPIs 8
 
 struct Container {
     int id, wait, overdue, arrival_time;
@@ -43,7 +46,7 @@ struct KPI_t {
 struct World {
     int time;
     std::stack<Container> arrival_stack, handover_stack;
-    std::stack<Container> buffers[3];
+    std::vector<std::stack<Container>> buffers;
     const int max_arrival_size;
     const int max_buffer_size;
     KPI_t KPI;
@@ -53,7 +56,7 @@ class Simulator {
 private:
     int time = 0;
     std::stack<Container> arrival_stack, handover_stack;
-    std::stack<Container> buffers[3];
+    std::vector<std::stack<Container>> buffers;
     std::mt19937 rng;
     inline static double seed = Parameters::SIMULATOR_SEED;
     int next_id = 1;

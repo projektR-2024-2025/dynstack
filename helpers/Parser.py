@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 BEST_BLOCK_RE = re.compile(
-    r"^Best in\s+(?P<gen>\d+)\s*$\s*(?P<xml><Individual\b.*?</Individual>)",
+    r"^Generation:\s+(?P<gen>\d+).*?(?P<xml><Individual\b.*?</Individual>)",
     re.MULTILINE | re.DOTALL,
 )
 
