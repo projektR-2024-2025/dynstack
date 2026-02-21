@@ -11,10 +11,14 @@
 static double run_simulation(Simulator& sim, AbstractHeuristic& heuristic, int max_steps) {
     for (int step = 0; step < max_steps; ++step) {
         Move m = heuristic.calculate_move(sim);
+        bool crane_avail = sim.getCraneState();
         AbstractHeuristic::apply_move(sim, m);
         if (!Parameters::USING_ECF || Parameters::RUN_BEST) {
             sim.print_state();
-            m.print_move();
+            if (crane_avail)
+                m.print_move();
+            else
+                std::cout << std::endl;
             sim.print_status();
             std::this_thread::sleep_for(std::chrono::milliseconds(Parameters::STEP_DURATION));
         }

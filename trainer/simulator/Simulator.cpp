@@ -224,7 +224,9 @@ void Simulator::print_status() {
     std::cout << "Arrival: " << arrival_stack.size() << " | ";
     std::cout << "Buffers: [";
     for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
-        std::cout << buffers[i].size() << ",";
+        std::cout << buffers[i].size();
+        if (i < (Parameters::BUFFER_COUNT - 1))
+            std::cout << ",";
     }
     std::cout << "] | " << "Handover: " << handover_stack.size() << std::endl;
 

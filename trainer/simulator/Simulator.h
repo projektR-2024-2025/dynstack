@@ -76,6 +76,7 @@ public:
     ~Simulator() = default;
 
     World getWorld();
+    bool getCraneState() { return is_crane_avail; }
     bool move_arrival_to_buffer(int buffer_id);
     bool move_buffer_to_buffer(int from_buffer_id, int to_buffer_id);
     bool move_buffer_to_handover(int buffer_id);
