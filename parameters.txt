@@ -22,11 +22,11 @@
         <SimulationSteps>500</SimulationSteps> <!-- Broj koraka simulacije -->
         <PrintSteps>0</PrintSteps> <!-- Ispis svakog koraka u obliku teksta -->
         <MetaAlg>3</MetaAlg> <!-- Odabir meta-algoritma 0/1/2/3 -->
-        <FeatureSelection>2 4 8 9 10 11 12 13 14 15 16 17 20 21 23 27</FeatureSelection>
+        <FeatureSelection>2 4 8 9 10 11 12 13 14 15 16 17 20 21 23 28</FeatureSelection>
         <StepDuration>400</StepDuration> <!-- Duljina koraka pri vizualizaciji (u ms) -->
     </Main>
     <KPI> <!-- KPI tezine -->
-        <Weights>0.5 -0.4 0.1</Weights>
+        <Weights>5 -4 1 -1 0 -10 0 -2</Weights>
     </KPI>
     <Simulator> <!-- Opcije koje mijenjaju rad simulatora -->
         <BufferCount>3</BufferCount>

@@ -65,10 +65,26 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
         avg_tud[i] = std::numeric_limits<double>::infinity();
         empty[i] = true;
     }
-    for (int i = 0; i < tud_cnt; ++i) {
+    std::queue<Container> s = before.arrival_stack;
+    double sum = 0.0;
+    int cnt = 0;
+    while (!s.empty()) {
+        const auto& c = s.front();
+        double tud = c.arrival_time + c.wait + c.overdue - before.time;
+        if (tud >=0){ //gledamo samo nenegativne (oni koji vec kasne su manje bitni)
+            min_tud[0] = std::min(min_tud[0], tud);
+            sum += tud;
+            cnt++;
+        }
+        s.pop();
+    }
+    if (cnt!=0) 
+        avg_tud[0] = sum / cnt;
+    empty[0] = false;
+
+    for (int i = 1; i < tud_cnt; ++i) {
         std::stack<Container> s;
-        if (i == 0) s = before.arrival_stack;
-        else if (i >= 1 && i <= Parameters::BUFFER_COUNT) s = before.buffers[i - 1];
+        if (i >= 1 && i <= Parameters::BUFFER_COUNT) s = before.buffers[i - 1];
         else s = before.handover_stack;
         if (s.empty()) continue;
         double sum = 0.0;
@@ -128,7 +144,7 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
         moved_tud = 0.0; //tud bloka kojeg smo pomakli
 
         if ((m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER)&& !before.arrival_stack.empty()) {
-            auto c = before.arrival_stack.top();
+            auto c = before.arrival_stack.front();
             moved_ready = c.is_ready(before.time);
             moved_tud = c.arrival_time + c.wait + c.overdue - before.time;
         }
@@ -138,16 +154,25 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
             moved_tud = c.arrival_time + c.wait + c.overdue - before.time;
         }
         //src
-        std::stack<Container> src_stack;
-        src_stack = (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) ? before.arrival_stack : before.buffers[m.from];
-
-        src_size = double(src_stack.size());
         src_ready = 0.0; //koliko ima ready blokova na src
         src_overdue = 0.0; //koliko ima overdue blokova na src
-        while (!src_stack.empty()) {
-            if (src_stack.top().is_ready(before.time)) src_ready += 1.0;
-            if (src_stack.top().is_overdue(before.time)) src_overdue += 1.0;
-            src_stack.pop();
+        if (m.type == MoveType::ARRIVAL_TO_BUFFER || m.type == MoveType::ARRIVAL_TO_HANDOVER) {
+            std::queue<Container> src_stack = before.arrival_stack;
+            src_size = double(src_stack.size());
+            while (!src_stack.empty()) {
+                if (src_stack.front().is_ready(before.time)) src_ready += 1.0;
+                if (src_stack.front().is_overdue(before.time)) src_overdue += 1.0;
+                src_stack.pop();
+            }
+        }
+        else {
+            std::stack<Container> src_stack = before.buffers[m.from];
+            src_size = double(src_stack.size());
+            while (!src_stack.empty()) {
+                if (src_stack.top().is_ready(before.time)) src_ready += 1.0;
+                if (src_stack.top().is_overdue(before.time)) src_overdue += 1.0;
+                src_stack.pop();
+            }
         }
         //dest
         std::stack<Container> dest_stack;
@@ -182,6 +207,17 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     double delta_buffer_util = ka.buffer_util - kb.buffer_util;
     double delta_handover_util = ka.handover_util - kb.handover_util;
 
+    // move cost
+    int move_cost = 0;
+    switch (m.type)
+    {
+        case MoveType::ARRIVAL_TO_BUFFER: move_cost = m.to + 1; break;
+        case MoveType::ARRIVAL_TO_HANDOVER: move_cost = Parameters::BUFFER_COUNT + 1; break;
+        case MoveType::BUFFER_TO_BUFFER: move_cost = abs(m.from - m.to); break;
+        case MoveType::BUFFER_TO_HANDOVER: move_cost = Parameters::BUFFER_COUNT - m.from; break;
+        default: move_cost = 0; break;
+    }
+
     features.push_back(delta_arrival);
     features.push_back(delta_total_ready);
     features.push_back(delta_total_blocks);
@@ -211,6 +247,8 @@ std::vector<double> PriorityHeuristic::extract_features(const World& before, con
     features.push_back(delta_service_level);
     features.push_back(delta_buffer_util);
     features.push_back(delta_handover_util);
+
+    features.push_back(move_cost);
 
     return features;
 }
@@ -428,11 +466,13 @@ std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
     if (w.arrival_stack.size() > 1) {
         for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (w.buffers[b].size() < w.max_buffer_size) {
+                if (!w.buffers[b].empty() && w.buffers[b].top().is_ready(w.time))
+                    continue;
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
             }
         }
         
-        Container& arrival_top = w.arrival_stack.top();
+        Container& arrival_top = w.arrival_stack.front();
         if (w.handover_stack.empty() && arrival_top.is_ready(w.time)) {
             moves.push_back(Move{ MoveType::ARRIVAL_TO_HANDOVER, -1, -1 });
         }
@@ -441,35 +481,29 @@ std::vector<Move> PriorityHeuristic::meta_alg_3(Simulator& sim) {
 
         // Get possible handovers
         if (!w.arrival_stack.empty()) {
-            Container& top = w.arrival_stack.top();
+            Container& top = w.arrival_stack.front();
             if (top.is_ready(w.time) && w.handover_stack.empty()) {
                 moves.push_back(Move{ MoveType::ARRIVAL_TO_HANDOVER, -1, -1 });
             }
         }
+        bool top_ready = false;
         for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
             if (!w.buffers[b].empty()) {
                 Container& top = w.buffers[b].top();
                 if (top.is_ready(w.time) && w.handover_stack.empty()) {
                     moves.push_back(Move{ MoveType::BUFFER_TO_HANDOVER, b, -1 });
                 }
+                if (top.is_ready(w.time))
+                    top_ready = true;
             }
         }
         // If any ready container is on top and handover is ready -> return moves
         if (!moves.empty()) return moves;
 
-
         // Rest of the possible moves.
         // SKIP move
-        moves.push_back(Move{ MoveType::NONE, -1, -1 });
-
-        // ARRIVAL -> BUFFER
-        if (w.arrival_stack.size() == 1) {
-            for (int b = 0; b < Parameters::BUFFER_COUNT; ++b) {
-                if (w.buffers[b].size() < w.max_buffer_size) {
-                    moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, b });
-                }
-            }
-        }
+        if (sim.getLastMove() == MoveType::BUFFER_TO_BUFFER || top_ready)
+            moves.push_back(Move{ MoveType::NONE, -1, -1 });
 
         // BUFFER -> BUFFER
         for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {

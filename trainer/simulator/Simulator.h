@@ -2,6 +2,7 @@
 #define SIMULATOR_H
 
 #include <stack>
+#include <queue>
 #include <random>
 #include <iostream>
 #include <iomanip>
@@ -10,6 +11,8 @@
 #include "Parameters.h"
 
 #define KPIs 8
+
+enum class MoveType;
 
 struct Container {
     int id, wait, overdue, arrival_time;
@@ -45,7 +48,8 @@ struct KPI_t {
 
 struct World {
     int time;
-    std::stack<Container> arrival_stack, handover_stack;
+    std::queue<Container> arrival_stack;
+    std::stack<Container> handover_stack;
     std::vector<std::stack<Container>> buffers;
     const int max_arrival_size;
     const int max_buffer_size;
@@ -55,7 +59,8 @@ struct World {
 class Simulator {
 private:
     int time = 0;
-    std::stack<Container> arrival_stack, handover_stack;
+    std::queue<Container> arrival_stack;
+    std::stack<Container> handover_stack;
     std::vector<std::stack<Container>> buffers;
     std::mt19937 rng;
     inline static double seed = Parameters::SIMULATOR_SEED;
@@ -65,6 +70,7 @@ private:
     int leadtime = 0;
     bool is_crane_avail = true;
     int made_move = 0;
+    MoveType last_move;
 
     void initalize_buffers();
     void generate_arrival();
@@ -77,10 +83,12 @@ public:
 
     World getWorld();
     bool getCraneState() { return is_crane_avail; }
+    MoveType getLastMove() { return last_move; }
     bool move_arrival_to_buffer(int buffer_id);
     bool move_buffer_to_buffer(int from_buffer_id, int to_buffer_id);
     bool move_buffer_to_handover(int buffer_id);
     bool move_arrival_to_handover();
+    bool no_move();
     void print_status();
     void print_state();
     void step();

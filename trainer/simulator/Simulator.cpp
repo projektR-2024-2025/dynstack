@@ -1,4 +1,5 @@
 #include "Simulator.h"
+#include "Heuristic.h"
 
 void Simulator::initalize_buffers() {
     for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
@@ -48,7 +49,7 @@ void Simulator::calculate_KPI() {
     int total_blocks = 0;
     KPI.blocks_on_time = delivered_on_time;
     while (!world.arrival_stack.empty()) {
-        if(!world.arrival_stack.top().is_overdue(time))
+        if(!world.arrival_stack.front().is_overdue(time))
             KPI.blocks_on_time++;
         world.arrival_stack.pop();
         total_blocks++;
@@ -74,6 +75,7 @@ void Simulator::calculate_KPI() {
 }
 
 Simulator::Simulator() {
+    last_move = MoveType::NONE;
     rng.seed(Simulator::seed);
     for (int i = 0; i < Parameters::BUFFER_COUNT; i++) {
         std::stack<Container> stck;
@@ -108,10 +110,13 @@ bool Simulator::move_arrival_to_buffer(int buffer_id) {
     KPI.crane_manipulations++;
     is_crane_avail = false;
     made_move = buffer_id + 1;
-    Container c = arrival_stack.top(); arrival_stack.pop();
+    Container c = arrival_stack.front(); arrival_stack.pop();
     buffers[buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
         std::cout << "Time " << time << ": #" << c.id << " -> Buffer " << buffer_id << std::endl;
+
+    last_move = MoveType::ARRIVAL_TO_BUFFER;
+
     return true;
 }
 
@@ -140,6 +145,9 @@ bool Simulator::move_buffer_to_buffer(int from_buffer_id, int to_buffer_id) {
     buffers[to_buffer_id].push(c);
     if (Parameters::PRINT_STEPS)
         std::cout << "Time " << time << ": Buffer " << from_buffer_id << " #" << c.id << " -> Buffer " << to_buffer_id << std::endl;
+
+    last_move = MoveType::BUFFER_TO_BUFFER;
+
     return true;
 }
 
@@ -178,6 +186,9 @@ bool Simulator::move_buffer_to_handover(int buffer_id) {
         delivered_on_time++;
     if (Parameters::PRINT_STEPS)
         std::cout << "Time " << time << ": Buffer " << buffer_id << " #" << c.id << " -> Handover" << std::endl;
+
+    last_move = MoveType::BUFFER_TO_HANDOVER;
+
     return true;
 }
 
@@ -198,7 +209,7 @@ bool Simulator::move_arrival_to_handover() {
         return false;
     }
 
-    Container c = arrival_stack.top();
+    Container c = arrival_stack.front();
     if (!c.is_ready(time)) {
         if (Parameters::PRINT_STEPS)
             std::cout << "Container not ready!" << std::endl;
@@ -216,7 +227,22 @@ bool Simulator::move_arrival_to_handover() {
         delivered_on_time++;
     if (Parameters::PRINT_STEPS)
         std::cout << "Time " << time << ": #" << c.id << " -> Handover" << std::endl;
+
+    last_move = MoveType::ARRIVAL_TO_HANDOVER;
+
     return true;
+}
+
+bool Simulator::no_move() {
+    if (!is_crane_avail) {
+        if (Parameters::PRINT_STEPS)
+            std::cout << "Crane is not available!" << std::endl;
+        return false;
+    }
+
+    last_move = MoveType::NONE;
+
+    return false;
 }
 
 void Simulator::print_status() {
@@ -231,7 +257,7 @@ void Simulator::print_status() {
     std::cout << "] | " << "Handover: " << handover_stack.size() << std::endl;
 
     // Show tops
-    if (!arrival_stack.empty()) std::cout << "Arrival top: #" << arrival_stack.top().id << " ";
+    if (!arrival_stack.empty()) std::cout << "Arrival top: #" << arrival_stack.front().id << " ";
     for (int i = 0; i < Parameters::BUFFER_COUNT; ++i) {
         if (!buffers[i].empty()) std::cout << "B" << i + 1 << ": #" << buffers[i].top().id << " ";
     }
@@ -247,12 +273,12 @@ void Simulator::print_state() {
         std::cout << std::left;
 
         if (i <= world.arrival_stack.size()) {
-            if (world.arrival_stack.top().is_ready(world.time))
+            if (world.arrival_stack.front().is_ready(world.time))
                 std::cout << "\033[1;32m";
-            if (world.arrival_stack.top().is_overdue(world.time))
+            if (world.arrival_stack.front().is_overdue(world.time))
                 std::cout << "\033[1;31m";
 
-            std::cout << std::setw(15) << world.arrival_stack.top().id << "\033[0m";
+            std::cout << std::setw(15) << world.arrival_stack.front().id << "\033[0m";
             world.arrival_stack.pop();
         }
         else

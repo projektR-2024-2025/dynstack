@@ -54,7 +54,7 @@ public:
         case MoveType::BUFFER_TO_BUFFER: return sim.move_buffer_to_buffer(m.from, m.to);
         case MoveType::BUFFER_TO_HANDOVER: return sim.move_buffer_to_handover(m.from);
         case MoveType::ARRIVAL_TO_HANDOVER: return sim.move_arrival_to_handover();
-        case MoveType::NONE: default: return false;
+        case MoveType::NONE: default: return sim.no_move();
         }
     }
 };

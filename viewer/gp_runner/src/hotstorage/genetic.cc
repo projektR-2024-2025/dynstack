@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <random>
 
 namespace DynStacking {
     namespace HotStorage {
@@ -22,6 +23,8 @@ namespace DynStacking {
             int source;
             int target;
         };
+
+        MoveType last_move = MoveType::NONE;
 
         std::vector<int> parse_feat_select() {
             std::vector<int> features;
@@ -144,7 +147,6 @@ namespace DynStacking {
             return moves;
         }
 
-
         std::vector<Move> meta_alg_3(const World& w){
             std::vector<Move> moves;
 
@@ -152,6 +154,8 @@ namespace DynStacking {
             if (w.production().bottomtotop_size() > 1){
                 // ARRIVAL -> BUFFER
                 for (const auto& buffer : w.buffers()){
+                    if (buffer.bottomtotop_size() > 0 && buffer.bottomtotop(buffer.bottomtotop_size() - 1).ready())
+                        continue;
                     if (buffer.bottomtotop_size() < buffer.maxheight()){
                         moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, buffer.id() });
                     }
@@ -170,6 +174,7 @@ namespace DynStacking {
                         moves.push_back(Move{MoveType::ARRIVAL_TO_HANDOVER, -1, -1});
                     }
                 }
+                bool top_ready = false;
                 // BUFFER -> HANDOVER
                 for (const auto& buffer : w.buffers()){
                     if (buffer.bottomtotop_size() > 0){
@@ -178,22 +183,17 @@ namespace DynStacking {
                         if (top.ready() && w.handover().ready()){
                             moves.push_back(Move{ MoveType::BUFFER_TO_HANDOVER, buffer.id(), -1 });
                         }
+                        if (top.ready())
+                            top_ready = true;
                     }
                 }
                 // If any ready container is on top and handover is ready -> return moves
                 if (!moves.empty()) return moves;
 
                 // SKIP move
-                moves.push_back(Move{ MoveType::NONE, -1, -1 });
+                if (last_move == MoveType::BUFFER_TO_BUFFER || top_ready)
+                    moves.push_back(Move{ MoveType::NONE, -1, -1 });
 
-                // ARRIVAL -> BUFFER
-                if (w.production().bottomtotop_size() == 1){
-                    for (const auto& buffer : w.buffers()){
-                        if (buffer.bottomtotop_size() < buffer.maxheight()){
-                            moves.push_back(Move{ MoveType::ARRIVAL_TO_BUFFER, -1, buffer.id() });
-                        }
-                    }
-                }
                 // BUFFER -> BUFFER
                 for (const auto& src : w.buffers()){
                     if (src.bottomtotop_size() > 0){
@@ -387,6 +387,16 @@ namespace DynStacking {
                 dest_emptying_priority = emptying_priority[dest_idx];
             }
 
+            // move cost
+            int move_cost = 0;
+            switch (m.type)
+            {
+                case MoveType::ARRIVAL_TO_BUFFER: move_cost = m.target + 1; break;
+                case MoveType::ARRIVAL_TO_HANDOVER: move_cost = 3 + 1; break;
+                case MoveType::BUFFER_TO_BUFFER: move_cost = abs(m.source - m.target); break;
+                case MoveType::BUFFER_TO_HANDOVER: move_cost = 3 - m.source; break;
+                default: move_cost = 0; break;
+            }
 
             //delta kpi
             const auto& kb = before.kpis();
@@ -429,6 +439,8 @@ namespace DynStacking {
             features.push_back(delta_service_level);
             features.push_back(delta_buffer_util);
             features.push_back(delta_handover_util);
+
+            features.push_back(move_cost);
 
             return features;
         }
@@ -513,6 +525,9 @@ namespace DynStacking {
                 
                 schedule.set_sequencenr(1);
                 std::cout << schedule.DebugString() << std::endl;
+
+                last_move = best_move.type;
+
                 return schedule;
             }
             
